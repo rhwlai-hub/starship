@@ -520,8 +520,8 @@ button.act small.nohelp { opacity: .6; }
           { w: 80, text: "The shields flare white and hold. It costs power, and nothing else.", fx: { e: -90 } },
           { w: 20, text: "The shields hold for all but the last second.", fx: { e: -90, h: -8 } } ] },
         { label: "Run for the shadow of a moon", skill: "piloting", outcomes: [
-          { w: 60, text: "The helm puts a dead moon between the ship and the star with seconds to spare.", fx: { e: -40 } },
-          { w: 40, text: "The moon is a few seconds too far. The flare catches the stern and cooks the scanner array.", fx: { h: -18, sd: 2 } } ] },
+          { w: 60, text: "The helm puts a dead moon between the ship and the star with seconds to spare, and while it waits there the moon proves rich in surface ore.", fx: { e: -40, m: 15, chart: 3 } },
+          { w: 40, text: "The moon is a few seconds too far. The flare catches the stern and cooks the scanner array.", fx: { h: -15, sd: 2 } } ] },
         { label: "Deploy the collectors and drink it in", skill: "engineering", outcomes: [
           { w: 45, text: "The collectors glow like filaments and the reserve gauges climb faster than anyone has seen.", fx: { e: 250 } },
           { w: 55, text: "The collectors take as much as they can and then burn. You get something for it, at a price.", fx: { e: 60, h: -12 } } ] } ] },
@@ -594,8 +594,8 @@ button.act small.nohelp { opacity: .6; }
           { w: 75, text: "The engines howl for six minutes and the ship crawls free.", fx: { e: -160 } },
           { w: 25, text: "The ship crawls free, but the strain opens a seam aft.", fx: { e: -160, h: -10 } } ] },
         { label: "Slingshot round it", skill: "piloting", outcomes: [
-          { w: 55, text: "The helm threads it. The Explorer is flung clear at a speed her engines could never reach, to somewhere else entirely.", fx: { jump: 1 } },
-          { w: 45, text: "The hull was not built for it. You get clear with frames buckled along one side.", fx: { h: -25 } } ] },
+          { w: 55, text: "The helm threads it. The Explorer is flung clear at a speed her engines could never reach, to somewhere else entirely, and the readings from the slingshot are a discovery in themselves.", fx: { jump: 1, f: 1 } },
+          { w: 45, text: "The hull was not built for it. You get clear with frames buckled along one side.", fx: { h: -20 } } ] },
         { label: "Dump cargo to lighten the ship", skill: "engineering", cost: { m: 30 }, outcomes: [
           { w: 100, text: "The cargo falls away into the dark and the lightened ship pulls free on a fraction of the power.", fx: { e: -40 } } ] } ] },
 
@@ -625,8 +625,8 @@ button.act small.nohelp { opacity: .6; }
           { w: 65, text: "The patch holds, and the chief's improvised bypass turns out to run better than the original.", fx: { me: 30 } },
           { w: 35, text: "The patch lets go under load and a third of a tank boils off into space.", fx: { e: -150 } } ] },
         { label: "Carry on and watch the gauges", skill: "piloting", outcomes: [
-          { w: 50, text: "It gets no worse. You lose a little coolant and nothing more.", fx: { e: -30 } },
-          { w: 50, text: "It gets worse all at once. The loop bursts and the engine room floods with vapour.", fx: { e: -100, h: -15 } } ] } ] },
+          { w: 50, text: "The helm flies cool and fast in a planet's shadow, so the leak never gets the chance to grow. The shortcut gains a day and charts the way.", fx: { e: -20, d: -1, chart: 3 } },
+          { w: 50, text: "It gets worse halfway through the manoeuvre, and a third of a tank boils off before it is sealed.", fx: { e: -100 } } ] } ] },
 
     { id: "cache", title: "The smugglers' cache",
       text: ["A faint beacon leads to a hollowed asteroid and, inside it, a sealed container the size of a shuttle. The seal is Kethari. The lock is not: somebody stole this and hid it here."],
@@ -661,8 +661,8 @@ button.act small.nohelp { opacity: .6; }
       none: "The mines are dead. Their power cells ran down years ago, and the Explorer drifts out among them untouched.",
       choices: [
         { label: "Creep out the way you came", skill: "piloting", outcomes: [
-          { w: 75, text: "Two days at a walking pace, with a lookout at every port. Nothing touches the hull.", fx: { d: 2 } },
-          { w: 25, text: "Two days of creeping, and one mine drifts where none was plotted.", fx: { d: 2, h: -15 } } ] },
+          { w: 75, text: "It takes a day of patient flying. On the way the helm picks up loose mine casings, worth stripping for parts.", fx: { d: 1, m: 20 } },
+          { w: 25, text: "Most of the way out, a mine drifts across your path.", fx: { d: 2, h: -12 } } ] },
         { label: "Clear a lane with the lasers", skill: "tactical", cost: { e: 110 }, outcomes: [
           { w: 85, text: "The lasers pick them off one at a time. The casings are worth collecting on the way out.", fx: { m: 15 } },
           { w: 15, text: "One detonation sets off its neighbours, and the chain runs back toward the ship.", fx: { h: -20 } } ] },
@@ -695,8 +695,8 @@ button.act small.nohelp { opacity: .6; }
           { w: 70, text: "Whatever it was, you have the first clean recording of one.", fx: { f: 1 } },
           { w: 30, text: "The signal feeds back through the receivers and takes the scanner down with it.", fx: { sd: 2 } } ] },
         { label: "Take the warning and change course", skill: "piloting", outcomes: [
-          { w: 60, text: "An hour later a Kethari gunship crosses the exact spot you would have been in.", fx: { e: -50 } },
-          { w: 40, text: "The new course takes you straight into a raider that had been stalking you from the other side.", fx: { fight: 0 } } ] } ] },
+          { w: 60, text: "The new course leads past an old wreck nobody had found. Its stores are still sealed.", fx: { e: -40, m: 25 } },
+          { w: 40, text: "Whatever sent the warning was right about the danger and wrong about the way round it.", fx: { fight: 0 } } ] } ] },
 
     { id: "comet", title: "The comet",
       text: ["A comet is passing, trailing a tail of ice rich in exactly what the reactor burns. It will be out of reach in two days."],
@@ -708,8 +708,8 @@ button.act small.nohelp { opacity: .6; }
         { label: "Mine it slowly and refine as you go", skill: "engineering", outcomes: [
           { w: 100, text: "Two careful days. The tanks are full and the dross is worth keeping.", fx: { e: 200, m: 15, d: 2 } } ] },
         { label: "Fly through the tail", skill: "piloting", outcomes: [
-          { w: 55, text: "The collectors sweep up what they can on a single pass. It is not much, but it costs no time.", fx: { e: 70 } },
-          { w: 45, text: "The tail is full of grit. It scours the hull and clogs the collectors.", fx: { e: 30, h: -8 } } ] } ] },
+          { w: 55, text: "The helm flies the tail's edge, where the ice is thickest. The collectors fill, and a few chunks of frozen ore come aboard too.", fx: { e: 120, m: 10 } },
+          { w: 45, text: "The tail is full of grit as well as ice.", fx: { e: 30, h: -8 } } ] } ] },
 
     { id: "convoy", title: "The convoy",
       text: ["Three Kethari supply barges are crossing the sector, fat and slow. Their escort has fallen behind. By your reckoning you have about ten minutes."],
@@ -783,7 +783,7 @@ button.act small.nohelp { opacity: .6; }
           { w: 75, text: "The vents are sealed and the hull is heated until the spores crisp and fall away.", fx: { e: -70 } },
           { w: 25, text: "The heat clears the spores but warps a stretch of plating.", fx: { e: -70, h: -6 } } ] },
         { label: "Outrun the cloud", skill: "piloting", outcomes: [
-          { w: 60, text: "A hard burn takes the Explorer clear before the spores can settle.", fx: { e: -50 } },
+          { w: 60, text: "A hard burn takes the Explorer clear before the spores can settle, through sectors nobody has charted, and a day ahead of plan.", fx: { e: -40, chart: 4, d: -1 } },
           { w: 40, text: "The cloud is wider than it looked. The ship gets clear, but the spores in the scanner housings have to be cleaned out by hand.", fx: { e: -50, sd: 2 } } ] } ] },
 
     { id: "breeders", title: "The gift that grows",
@@ -812,8 +812,8 @@ button.act small.nohelp { opacity: .6; }
           { w: 65, text: "Your doctor spots who remembers the earlier passes and pieces their memories together. The way out is in what they remember.", fx: { e: -60, f: 1 } },
           { w: 35, text: "Some of the crew cannot cope with living the same hour over and over. Getting everyone fit again takes a day after the loop breaks.", fx: { e: -100, d: 1 } } ] },
         { label: "Burn straight through it", skill: "piloting", outcomes: [
-          { w: 50, text: "Full power, one heading, no hesitation. The Explorer bursts out the far side.", fx: { e: -120 } },
-          { w: 50, text: "The burn feeds the loop instead of breaking it. When it finally lets go, the hull has paid as much as the reactor.", fx: { e: -150, h: -8 } } ] } ] },
+          { w: 50, text: "Full power, one heading, no hesitation. The Explorer bursts out of the loop with a day to spare, and the sensors bring back a clean record of how it held the ship.", fx: { e: -80, d: -1, f: 1 } },
+          { w: 50, text: "The burn feeds the loop for a while before it finally lets go. The reserves have paid for it.", fx: { e: -150 } } ] } ] },
 
     { id: "fever", title: "Ship's fever",
       text: ["The sick bay is full by morning. A fever is moving through the Explorer's crew, and nobody knows where it came from."],
@@ -995,7 +995,7 @@ button.act small.nohelp { opacity: .6; }
           { w: 60, text: "Your doctor suggests an irritant in the exhaust. The leviathan heaves, and the Explorer shoots out into open space with a hull coated in something valuable.", fx: { m: 35, f: 1 } },
           { w: 40, text: "It works, eventually, after a day of the creature's digestion working on the hull.", fx: { h: -10, d: 1 } } ] },
         { label: "Fly out the long way", skill: "piloting", outcomes: [
-          { w: 50, text: "The helm threads the creature's insides and finds the other end. Undignified, but undamaged.", fx: { e: -80 } },
+          { w: 50, text: "The helm threads the creature's insides and finds the other end. On the way, the scoops fill with minerals it has swallowed over the centuries.", fx: { e: -60, m: 30 } },
           { w: 50, text: "The insides are longer than anyone thought.", fx: { e: -150, h: -6 } } ] },
         { label: "Cut your way out", skill: "tactical", outcomes: [
           { w: 60, text: "The lasers make short work of it. The creature lets you go and swims off, wounded but alive.", fx: { e: -60 } },
@@ -1054,7 +1054,7 @@ button.act small.nohelp { opacity: .6; }
           { w: 60, text: "Your doctor finds a way to dull the chorus's voice in every head aboard. Unable to persuade, it loses interest.", fx: { f: 1 } },
           { w: 40, text: "Some of the crew hear it anyway, and need care for days afterwards.", fx: { d: 2 } } ] },
         { label: "Break through their formation", skill: "piloting", outcomes: [
-          { w: 55, text: "The helm finds a gap and the Explorer is through before the chorus can close it.", fx: { e: -60 } },
+          { w: 55, text: "The helm finds a gap and the Explorer is through before the chorus can close it, carrying a recording of the chorus's own navigation net.", fx: { e: -60, chart: 5, f: 1 } },
           { w: 45, text: "The gap closes on your tail.", fx: { e: -60, h: -12 } } ] } ] },
 
     { id: "watchers", title: "The watchers' rule",
@@ -1083,7 +1083,7 @@ button.act small.nohelp { opacity: .6; }
           { w: 55, text: "She was bluffing. With a grin she salutes and leaves you a crate as a tip for the nerve.", fx: { m: 20 } },
           { w: 45, text: "She was not bluffing.", fx: { h: -15, m: -10 } } ] },
         { label: "Outrun them", skill: "piloting", outcomes: [
-          { w: 60, text: "Patched ships, patched engines. The Explorer is out of range in minutes.", fx: { e: -80 } },
+          { w: 60, text: "Patched ships, patched engines. To keep up, the pirates dump cargo, and the Explorer scoops it up once they give up the chase.", fx: { e: -80, m: 30 } },
           { w: 40, text: "One of them has a very good engine.", fx: { e: -80, h: -8 } } ] } ] },
 
     { id: "casino", title: "The house always wins",
@@ -1333,7 +1333,7 @@ button.act small.nohelp { opacity: .6; }
           { w: 55, text: "The collectors drink the charge as fast as it comes. The reserve gauges climb steadily.", fx: { e: 200 } },
           { w: 45, text: "The charge comes faster than the collectors can take it. Something in the power trunk burns out.", fx: { e: -60, h: -6 } } ] },
         { label: "Ride the current through the cloud", skill: "piloting", outcomes: [
-          { w: 60, text: "The current carries the Explorer clear across the nebula, and the sensors map everything it passes.", fx: { chart: 4 } },
+          { w: 60, text: "The current carries the Explorer clear across the nebula in half the time, and the sensors map everything it passes.", fx: { chart: 5, d: -1 } },
           { w: 40, text: "The current goes in circles. Two days later you are back where you started.", fx: { d: 2 } } ] },
         { label: "Measure the discharge", skill: "science", outcomes: [
           { w: 70, text: "The charge builds by a process nobody has described before. The science team is delighted.", fx: { f: 1 } },
@@ -1350,8 +1350,8 @@ button.act small.nohelp { opacity: .6; }
           { w: 70, text: "The clumps are rich in heavy elements, and they come aboard easily.", fx: { m: 30 } },
           { w: 30, text: "One clump is larger than it looked. It hits the collection arm hard.", fx: { m: 10, h: -8 } } ] },
         { label: "Slingshot through the core", skill: "piloting", outcomes: [
-          { w: 55, text: "The young star's pull flings the Explorer clear across the galaxy.", fx: { jump: 1 } },
-          { w: 45, text: "The core is hotter than it looked. The Explorer turns back with blistered plating.", fx: { h: -12 } } ] } ] },
+          { w: 55, text: "The young star's pull flings the Explorer clear across the galaxy, with sensor readings of its heart to show for it.", fx: { jump: 1, f: 1 } },
+          { w: 45, text: "The core is hotter than it looked. The Explorer turns back with blistered plating.", fx: { h: -10 } } ] } ] },
 
     { id: "prospector", where: "asteroids", art: "trock", title: "The prospector",
       text: ["A battered mining rig is wedged between two rocks, its drill jammed. The prospector who owns it has been out here alone for a long time, and talks to you as if you were old friends."],
@@ -1378,7 +1378,7 @@ button.act small.nohelp { opacity: .6; }
           { w: 70, text: "A few shots and it retreats, leaving chips of metal-rich rock behind.", fx: { m: 25, e: -40 } },
           { w: 30, text: "It does not retreat. It charges, and the impact rings through every deck.", fx: { h: -12, e: -40 } } ] },
         { label: "Back away slowly", skill: "piloting", outcomes: [
-          { w: 80, text: "The Explorer edges back out of the field. The creature watches it go.", fx: { e: -30 } },
+          { w: 80, text: "The Explorer edges back out of the field. The creature watches it go, and leaves a trail of metal-rich gravel the scoops pick up.", fx: { e: -20, m: 15 } },
           { w: 20, text: "Backing into the field means backing into rocks.", fx: { e: -30, h: -6 } } ] } ] },
 
     { id: "collision", where: "asteroids", art: "trock", title: "The collision",
@@ -1421,7 +1421,7 @@ button.act small.nohelp { opacity: .6; }
           { w: 70, text: "The engines are dampened and the shields set gently. The cloud seems grateful, and its glow fills the collectors.", fx: { e: 200 } },
           { w: 30, text: "Dampening the engines leaves the ship drifting for a day.", fx: { d: 1 } } ] },
         { label: "Leave before it notices you", skill: "piloting", outcomes: [
-          { w: 80, text: "The Explorer slips out of the cloud quietly.", fx: { e: -40 } },
+          { w: 80, text: "The Explorer slips out of the cloud quietly, along a current that carries it a day further on and past sectors nobody has charted.", fx: { e: -20, chart: 3, d: -1 } },
           { w: 20, text: "It noticed, and it pushes the ship out rather hard.", fx: { h: -6 } } ] } ] },
 
     { id: "waitingfleet", where: "nebula", art: "tneb", title: "The waiting fleet",
@@ -1429,7 +1429,7 @@ button.act small.nohelp { opacity: .6; }
       none: "The squadron powers up and leaves, without ever seeing you.",
       choices: [
         { label: "Slip away quietly", skill: "piloting", outcomes: [
-          { w: 70, text: "The helm takes the Explorer out of the nebula on the thrusters alone, and nobody notices.", fx: { e: -40 } },
+          { w: 70, text: "The helm takes the Explorer out of the nebula on the thrusters alone, logging every Kethari ship it passes.", fx: { e: -30, ket: 1 } },
           { w: 30, text: "Someone noticed. One ship breaks off to give chase.", fx: { fight: 0 } } ] },
         { label: "Find out what they are waiting for", skill: "science", outcomes: [
           { w: 55, text: "Their orders are on an open channel. You now know where every Kethari ship in the galaxy will be.", fx: { ket: 1 } },
@@ -1727,7 +1727,7 @@ button.act small.nohelp { opacity: .6; }
           { w: 70, text: "Ten minutes of readings, then straight back to the shuttle. The data is fascinating, and the party loses only a few weeks of their lives.", fx: { f: 1 } },
           { w: 30, text: "Ten minutes became an hour. The party will be fine, eventually.", fx: { d: 1 } } ] },
         { label: "Get everyone off the surface now", skill: "piloting", outcomes: [
-          { w: 80, text: "The pilot has the shuttle off the ground in ninety seconds. Nobody minds that the mission found nothing.", fx: {} },
+          { w: 80, text: "The pilot has the shuttle off the ground in ninety seconds, and maps the continent on the way up.", fx: { chart: 3 } },
           { w: 20, text: "In the rush, the shuttle clips a ridge on the way up.", fx: { h: -6 } } ] } ] },
 
     { id: "arch", kind: 0, title: "The arch of years",
@@ -1854,7 +1854,7 @@ button.act small.nohelp { opacity: .6; }
           { w: 55, text: "Your security officer knows a thing or two about hunting. By dawn the host is tied up, and his trophy room is full of things worth taking.", fx: { m: 45 } },
           { w: 45, text: "A long, hard night. The party gets back to the shuttle, bruised.", fx: { d: 1, h: -6 } } ] },
         { label: "Run for the shuttle", skill: "piloting", outcomes: [
-          { w: 65, text: "The party makes it to the shuttle and is off the ground before the hunt begins.", fx: {} },
+          { w: 65, text: "The party makes it to the shuttle and is off the ground before the hunt begins, with the host's own maps snatched from the hall on the way out.", fx: { chart: 3, m: 10 } },
           { w: 35, text: "The host shoots at the shuttle as it lifts.", fx: { h: -10 } } ] },
         { label: "Patch up the party as they go", skill: "medical", outcomes: [
           { w: 60, text: "Your doctor keeps everyone moving through the night. They reach the shuttle at dawn, with the host's map of the planet taken from his study.", fx: { chart: 4, d: 1 } },
