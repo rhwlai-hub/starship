@@ -4104,6 +4104,8 @@ button.act small.nohelp { opacity: .6; }
       a.push(["repair", "Repair the hull", s.hull >= K.HULL ? "No damage to repair" : s.mats < rc ? "Needs " + rc + " materials" : (rc ? rc + " materials" : "Free") + ", +" + K.REPAIR_GAIN + " hull", s.hull >= K.HULL || s.mats < rc]);
       a.push(["btorp", "Buy a torpedo", s.torps >= torpMax() ? "The bay is full" : s.mats < K.TORP_PRICE ? "Needs " + K.TORP_PRICE + " materials" : K.TORP_PRICE + " materials", s.torps >= torpMax() || s.mats < K.TORP_PRICE]);
       a.push(["yard", "Shipyard", "Upgrades and new weapons"]);
+      var lostN = (s.crew || []).filter(function (o) { return o.st === "lost"; }).length;
+      if (lostN) a.push(["hire", "Recruit officers", (lostN > 1 ? lostN + " posts empty. " : "1 post empty. ") + (s.mats < K.RECRUIT_COST ? "Needs " + K.RECRUIT_COST + " materials" : K.RECRUIT_COST + " materials and 1 day each")]);
       if (c.offer === undefined) c.offer = makeOffer();
       if (s.job) a.push(["dropjob", jobArmed ? "Tap again to abandon the job" : "Abandon the current job", s.job.title]);
       if (c.offer) a.push(["takejob", "Take the job: " + c.offer.title, s.job ? "Finish or abandon your current job first" : "Reward: " + rewardText(c.offer.reward), !!s.job]);
@@ -4215,7 +4217,7 @@ button.act small.nohelp { opacity: .6; }
     save();
   }
 
-  var ACTS = { scan: scan, collect: collect, dock: dock, takejob: takeJob, dropjob: dropJob, land: openLanding, mine: mineField, survey: surveyNebula, salvage: salvage, wormhole: wormhole, repair: repair, yard: openYard, jump: jump, engage: engage, btorp: buyTorpedo };
+  var ACTS = { scan: scan, collect: collect, dock: dock, hire: function () { crewOpen = true; crewEdit = null; }, takejob: takeJob, dropjob: dropJob, land: openLanding, mine: mineField, survey: surveyNebula, salvage: salvage, wormhole: wormhole, repair: repair, yard: openYard, jump: jump, engage: engage, btorp: buyTorpedo };
   $("grid").addEventListener("click", function (e) {
     var b = e.target.closest(".cell"); if (!b || state.over || state.fight || state.enc || state.landing) return;
     gateArmed = false; sfx("tap");
