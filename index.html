@@ -248,6 +248,8 @@ svg.bv { display: block; width: 100%; height: auto; margin: 0 0 8px; }
 .crewbar:focus-visible { outline: 2px solid var(--signal); outline-offset: 1px; }
 .chips { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
 .chip { font-family: var(--display); font-size: 11px; letter-spacing: 0; padding: 1px 5px; white-space: nowrap; border-radius: 999px; border: 1px solid var(--hull); color: var(--hull); }
+.chip.green-o { border-style: dashed; }
+@media (max-width: 420px) { .crewbar > .label { display: none; } .crewbar .chips { justify-content: center; width: 100%; } }
 .chip.injured { border-color: var(--energy); color: var(--energy); }
 .chip.lost { border-color: var(--line); color: var(--muted); text-decoration: line-through; }
 .crew { list-style: none; margin: 6px 0 0; padding: 0; }
@@ -2814,17 +2816,20 @@ button.act small.nohelp { opacity: .6; }
     var eng = officer("eng"), engLvl = eng && eng.st === "fit" ? eng.lvl : 0;
     var m = Math.round(between(K.AST_MAT_MIN, K.AST_MAT_MAX) * (state.trait === "belts" ? 1 + K.BELT_GAIN : 1)) + (hasRelic("sniffer") ? 15 : 0), dmg = Math.max(0, roll(1, K.AST_MINE_DMG) - lvl("arm") - engLvl);
     c.charges = left - 1; state.mats += m; state.hull -= dmg; state.day++;
+    if (eng && eng.st === "fit") { var ue = useOfficer(eng); if (ue) note(ue[0] + "."); }
     sfx(dmg ? "hit" : "gain");
     note("A day mining the field at " + name(state.pos) + ". Brought in " + m + " materials" + (dmg ? ", and the hull took " + dmg + " damage from loose rock." : " without a scratch.") +
       (engLvl ? " " + short(eng) + " ran the cutting crews." : ""));
     checkOver();
   }
-  function surveyChance() { var sci = officer("sci"); return Math.min(1, K.NEB_FIND + (sci && sci.st === "fit" ? .1 * sci.lvl : 0)); }
+  function surveyChance() { var sci = officer("sci"); return Math.min(1, K.NEB_FIND + (sci && sci.st === "fit" ? .1 * eff(sci) : 0)); }
   function surveyNebula() {
     var c = here(); if (state.over || c.t !== "nebula" || charges(c, 1) < 1) return;
+    var sciO = officer("sci"), chance = surveyChance();
     c.charges = 0; state.day++;
+    if (sciO && sciO.st === "fit") { var us = useOfficer(sciO); if (us) note(us[0] + "."); }
     if (state.job && state.job.type === "survey") state.job.n++;
-    if (Math.random() < surveyChance()) {
+    if (Math.random() < chance) {
       state.found++; state.foundTotal++; sfx("gain");
       note("A day surveying the nebula at " + name(state.pos) + ". Its chemistry is unlike any on record: a discovery.");
     } else { sfx("tap"); note("A day surveying the nebula at " + name(state.pos) + ". It is much like every other."); }
@@ -3032,13 +3037,14 @@ button.act small.nohelp { opacity: .6; }
   function boardable(f) { return f.kind <= 3 && f.range === 0 && !canMoveFoe(f); }
   function boardChance(f) {
     var sec = officer("sec"); if (!sec || sec.st !== "fit") return 0;
-    var c = (f.kind === 3 ? K.BOARD_OUTPOST : K.BOARD_BASE) + K.BOARD_PER_LVL * sec.lvl + (f.w < 50 ? K.BOARD_WEAP : 0) + K.BOARD_HULL * Math.max(0, 1 - f.hp / f.max);
+    var c = (f.kind === 3 ? K.BOARD_OUTPOST : K.BOARD_BASE) + K.BOARD_PER_LVL * eff(sec) + (f.w < 50 ? K.BOARD_WEAP : 0) + K.BOARD_HULL * Math.max(0, 1 - f.hp / f.max);
     return Math.max(0, Math.min(.95, c));
   }
   function board() {
     var f = state.fight, sec = officer("sec"); if (!f || state.over || !boardable(f) || !sec || sec.st !== "fit") return;
-    var who = short(sec);
-    if (Math.random() < boardChance(f)) {
+    var who = short(sec), won = Math.random() < boardChance(f), first = useOfficer(sec);
+    if (first) note(first[0] + ".");
+    if (won) {
       var torps = Math.min(f.torps || 0, torpMax() - state.torps), xp = gainXp(sec), br = Math.random() < K.RELIC_BOARD ? giveRelic() : "";
       state.torps += torps; sfx("gain");
       fightWon(f, who + " led the boarding party." + (torps ? " " + torps + " of its torpedoes were brought across." : "") + (xp ? " " + xp[0] + "." : "") + (br ? " " + br + "." : ""), Math.round(lootOf(f) * K.BOARD_LOOT), "boarded");
@@ -3093,7 +3099,7 @@ button.act small.nohelp { opacity: .6; }
       alt: { label: "Hold course", text: "The moment passes.", fx: {} } }
   ];
   function evById(id) { for (var i = 0; i < EVENTS.length; i++) if (EVENTS[i].id === id) return EVENTS[i]; return EVENTS[0]; }
-  function evChance(role) { var o = officer(role); return o && o.st === "fit" ? Math.min(.95, K.EV_BASE + K.EV_PER_LVL * o.lvl) : K.EV_NONE; }
+  function evChance(role) { var o = officer(role); return o && o.st === "fit" ? Math.min(.95, K.EV_BASE + K.EV_PER_LVL * eff(o)) : K.EV_NONE; }
   function evHarm(fx) { return !!(fx.out || fx.hull || (fx.pow && fx.pow[0] < 0) || fx.torp < 0 || fx.half); }
   function startBattleEvent(f) {
     var pool = EVENTS.filter(function (e) { return e.ok(f); });
@@ -3122,7 +3128,7 @@ button.act small.nohelp { opacity: .6; }
     if (choice === 0) {
       var won = Math.random() < evChance(e.role), r = won ? e.off.win : e.off.lose;
       text = r[0]; fx = r[1]; chips = applyEvFx(f, fx);
-      if (fit) { var c = won ? gainXp(o) : evHarm(fx) ? riskOfficer(o) : null; if (c) chips.push(c); }
+      if (fit) { var u = useOfficer(o); if (u) chips.push(u); var c = won ? gainXp(o) : evHarm(fx) ? riskOfficer(o) : null; if (c) chips.push(c); }
       text = (fit ? short(o) + " took charge. " : "With no " + roleWord(e.role) + " fit to lead, the crew tried it themselves. ") + text;
     } else { text = e.alt.text; fx = e.alt.fx; chips = applyEvFx(f, fx); }
     sfx(chips.some(function (z) { return z[1] === "down"; }) ? "bad" : chips.length ? "gain" : "tap");
@@ -3134,7 +3140,7 @@ button.act small.nohelp { opacity: .6; }
     var e = evById(f.event.id), o = officer(e.role), fit = o && o.st === "fit", pct = Math.round(evChance(e.role) * 100);
     return '<div class="intent event"><span class="label">Situation</span><b>' + e.title + "</b>. " + e.text + "</div>" +
       '<div class="choices"><button type="button" class="act second" data-f="ev" data-v="0">' + e.off.label +
-      '<small class="' + (fit ? "help" : "nohelp") + '">' + (fit ? esc(short(o)) + ", level " + o.lvl + ": " + pct + "% chance" : "No " + roleWord(e.role) + " fit to lead: " + pct + "% chance") + "</small></button>" +
+      '<small class="' + (fit ? "help" : "nohelp") + '">' + (fit ? esc(short(o)) + ", " + lvlText(o) + ": " + pct + "% chance" : "No " + roleWord(e.role) + " fit to lead: " + pct + "% chance") + "</small></button>" +
       '<button type="button" class="act second" data-f="ev" data-v="1">' + e.alt.label + "<small>Certain</small></button></div>";
   }
 
@@ -3542,6 +3548,10 @@ button.act small.nohelp { opacity: .6; }
   }
   function newCrew() { var c = []; ROLES.forEach(function (r) { c.push(newOfficer(r.id, c)); }); return c; }
   function officer(roleId) { var c = state.crew || []; for (var i = 0; i < c.length; i++) if (c[i].role === roleId) return c[i]; return null; }
+  /* Green recruits (level 0) give half the help of level 1, and become level 1 the first time they are used. */
+  function eff(o) { return o && o.lvl > 0 ? o.lvl : .5; }
+  function lvlText(o) { return o.lvl > 0 ? "level " + o.lvl : "green"; }
+  function useOfficer(o) { if (o && o.lvl === 0) { o.lvl = 1; o.xp = 0; return [short(o) + " is no longer green: level 1", "up"]; } return null; }
   function short(o) { return roleById(o.role).rank + " " + o.nm.split(" ").pop(); }
   function roleWord(id) { var r = roleById(id); return id === "cmd" ? "commander" : r.n.toLowerCase() + " officer"; }
   /* The fit officer who helps with a choice of this skill, or null. */
@@ -3560,23 +3570,24 @@ button.act small.nohelp { opacity: .6; }
     for (i = 1; i < n; i++) if (v[i] > v[best]) best = i;
     var order = []; for (i = 0; i < n; i++) if (v[i] < v[best]) order.push(i);
     order.sort(function (a, b) { return v[a] - v[b]; });
-    var move = w.reduce(function (t, x) { return t + x; }, 0) * K.OFF_SHIFT * off.lvl;
+    var move = w.reduce(function (t, x) { return t + x; }, 0) * K.OFF_SHIFT * eff(off);
     order.forEach(function (j) { var take = Math.min(w[j], move); w[j] -= take; w[best] += take; move -= take; });
     return w;
   }
   function injuryDays(off) {
     var d = between(K.INJURY_MIN, Math.max(K.INJURY_MIN, K.INJURY_MAX)), med = officer("med");
-    if (med && med.st === "fit" && med !== off) d -= K.MED_HEAL * med.lvl;
+    if (med && med.st === "fit" && med !== off) d -= K.MED_HEAL * eff(med);
     if (hasRelic("surgery")) d = Math.ceil(d / 2);
-    return Math.max(1, d);
+    return Math.max(1, Math.round(d));
   }
   /* After an encounter outcome: experience on anything but the worst result, a risk of injury or loss on a bad worst result. */
   function officerAfter(off, ch, k, riskOnly) {
-    var v = ch.outcomes.map(function (o) { return fxValue(o.fx); }), out = [], who = short(off);
+    var v = ch.outcomes.map(function (o) { return fxValue(o.fx); }), out = [], who = short(off), first = useOfficer(off);
+    if (first) out.push(first);
     var lo = Math.min.apply(null, v), hi = Math.max.apply(null, v), worst = v.length > 1 && v[k] === lo && lo < hi;
-    if (!worst) { var g = riskOnly ? null : gainXp(off); return g ? [g] : out; }
+    if (!worst) { var g = riskOnly ? null : gainXp(off); if (g) out.push(g); return out; }
     if (v[k] >= 0) return out;
-    var r = riskOfficer(off); return r ? [r] : out;
+    var r = riskOfficer(off); if (r) out.push(r); return out;
   }
   /* One success for an officer. Returns a chip, or null at the top level. */
   function gainXp(off) {
@@ -3609,13 +3620,13 @@ button.act small.nohelp { opacity: .6; }
     var o = officer(roleId), s = state;
     if (s.over || s.fight || s.enc || here().t !== "base" || !o || o.st !== "lost" || s.mats < K.RECRUIT_COST) return;
     var i = s.crew.indexOf(o), n = newOfficer(roleId, s.crew);
-    s.crew[i] = n; s.mats -= K.RECRUIT_COST; s.day++; sfx("buy");
-    note(short(n) + " joins the Explorer as " + roleWord(roleId) + ".");
+    n.lvl = 0; s.crew[i] = n; s.mats -= K.RECRUIT_COST; s.day++; sfx("buy");
+    note(short(n) + " joins the Explorer as " + roleWord(roleId) + ". Still green: half the help of a level 1 officer until first used.");
   }
   function crewChips() {
     return (state.crew || []).map(function (o) {
       var r = roleById(o.role);
-      return '<span class="chip ' + o.st + '">' + r.n.slice(0, 3).toUpperCase() + (o.st === "lost" ? "" : " " + o.lvl) + "</span>";
+      return '<span class="chip ' + o.st + (o.lvl === 0 && o.st !== "lost" ? " green-o" : "") + '">' + r.n.slice(0, 3).toUpperCase() + (o.st === "lost" ? "" : " " + (o.lvl > 0 ? o.lvl : "green")) + "</span>";
     }).join("");
   }
   function crewHtml() {
@@ -3627,7 +3638,7 @@ button.act small.nohelp { opacity: .6; }
       var next = o.lvl === 1 ? K.OFF_XP2 : o.lvl === 2 ? K.OFF_XP3 : 0, left = Math.max(0, next - o.xp);
       h += '<li><div class="top2"><span class="who">' + esc(short(o)) + '</span><span class="st ' + o.st + '">' + st + "</span></div>" +
         "<small>" + esc(o.nm) + ". " + r.n + ", helps with " + r.skills + " choices.</small>" +
-        (o.st === "lost" ? "" : '<small>Level <span class="lv">' + "\u25CF\u25CF\u25CF".slice(0, o.lvl) + "\u25CB\u25CB\u25CB".slice(o.lvl) + "</span> " + (next ? left + " more success" + (left === 1 ? "" : "es") + " to level " + (o.lvl + 1) : "Highest level") + "</small>");
+        (o.st === "lost" ? "" : o.lvl === 0 ? "<small><b>Green.</b> Gives half the help of a level 1 officer. Becomes level 1 the first time they are used.</small>" : '<small>Level <span class="lv">' + "\u25CF\u25CF\u25CF".slice(0, o.lvl) + "\u25CB\u25CB\u25CB".slice(o.lvl) + "</span> " + (next ? left + " more success" + (left === 1 ? "" : "es") + " to level " + (o.lvl + 1) : "Highest level") + "</small>");
       if (crewEdit === o.role) {
         h += '<div class="row2"><input type="text" id="crewName" maxlength="24" value="' + esc(o.nm) + '" aria-label="Full name"><button type="button" class="go" data-c="save">Save</button><button type="button" data-c="cancel">Cancel</button></div>';
       } else if (o.st === "lost") {
@@ -3681,7 +3692,7 @@ button.act small.nohelp { opacity: .6; }
       " Pick " + (need > 1 ? "two officers" : "one officer") + ". An officer helps only with choices that match their role, and the one who leads a choice carries its risk.</p><div class=\"choices\">";
     state.crew.forEach(function (o) {
       var r = roleById(o.role), on = L.pick.indexOf(o.role) >= 0, fit = o.st === "fit";
-      var sub = !fit ? (o.st === "injured" ? "Injured, back day " + o.until : "Lost") : r.n + ", level " + o.lvl + (fav.indexOf(o.role) >= 0 ? ". Most use on this world" : "");
+      var sub = !fit ? (o.st === "injured" ? "Injured, back day " + o.until : "Lost") : r.n + ", " + lvlText(o) + (fav.indexOf(o.role) >= 0 ? ". Most use on this world" : "");
       h += '<button type="button" class="act' + (on ? "" : " second") + '" data-l="tog" data-v="' + o.role + '"' + (!fit || (!on && L.pick.length >= 2) ? " disabled" : "") + ' aria-pressed="' + on + '">' +
         (on ? "\u2713 " : "") + esc(short(o)) + "<small>" + sub + "</small></button>";
     });
@@ -3776,9 +3787,9 @@ button.act small.nohelp { opacity: .6; }
       h += en.text.map(function (p) { return "<p>" + p + "</p>"; }).join("") + '<div class="choices">';
       en.choices.forEach(function (c, i) {
         var rid = SKILL_ROLE[c.skill], o = rid ? officer(rid) : null, help = "";
-        if (rid && x.away) help = x.party.indexOf(rid) >= 0 && o && o.st === "fit" ? '<small class="help">' + esc(short(o)) + ", level " + o.lvl + ", improves the odds</small>"
+        if (rid && x.away) help = x.party.indexOf(rid) >= 0 && o && o.st === "fit" ? '<small class="help">' + esc(short(o)) + ", " + lvlText(o) + ", improves the odds</small>"
           : '<small class="nohelp">No ' + roleWord(rid) + " in the party</small>";
-        else if (rid) help = o && o.st === "fit" ? '<small class="help">' + esc(short(o)) + ", level " + o.lvl + ", improves the odds</small>"
+        else if (rid) help = o && o.st === "fit" ? '<small class="help">' + esc(short(o)) + ", " + lvlText(o) + ", improves the odds</small>"
           : '<small class="nohelp">' + (o && o.st === "injured" ? esc(short(o)) + " is injured and cannot help" : "No " + roleWord(rid) + " to help") + "</small>";
         h += '<button type="button" class="act second" data-e="pick" data-v="' + i + '"' + (canPay(c.cost) ? "" : " disabled") + ">" + c.label +
           (c.cost ? "<small>" + (canPay(c.cost) ? "Costs " : "You do not have ") + costText(c.cost) + "</small>" : "") + help + "</button>";
@@ -4047,7 +4058,7 @@ button.act small.nohelp { opacity: .6; }
     h += sec("Officers", [
       "Five officers: science, commander, security, medical and engineering. Tap <b>Crew</b> to see them, rename them, and see your relics.",
       "A fit officer whose role matches a choice moves " + Math.round(K.OFF_SHIFT * 100) + "% of the odds a level from the worst result to the best. Commanders help with diplomacy and piloting; security with tactical choices.",
-      "Officers gain experience from good results and reach level 3. Bad results can injure them for some days, or rarely lose them. Replace a lost officer at a starbase for " + K.RECRUIT_COST + " materials." ]);
+      "Officers gain experience from good results and reach level 3. Bad results can injure them for some days, or rarely lose them. Replace a lost officer at a starbase for " + K.RECRUIT_COST + " materials. A new recruit starts <b>green</b>: half the help of level 1 until they are first used, success or failure." ]);
     h += sec("Battle: each turn", [
       "Battle starts at long range. The enemy's move for the turn is shown in the amber box <b>before</b> you choose, along with what it will repair afterwards.",
       "You have <b>" + power() + " power</b> a turn, each point costing " + K.POWER_COST + " energy. Split it between moving, shields, lasers, a torpedo and damage control. Unused power banks for next turn, up to " + K.BANK_MAX + ".",
