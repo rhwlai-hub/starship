@@ -5,7 +5,8 @@ window.STARSHIP = window.STARSHIP || {};
 /* Random encounters. Each has one or two paragraphs and two to four choices. A choice may have a fixed cost and
    has weighted outcomes. fx keys: e energy, h hull, m materials, t torpedoes, f discoveries, d days, me reactor capacity,
    sd days of scanner outage, chart sectors revealed, ket reveal Kethari, jump thrown to a random sector, fight Kethari kind.
-   "skill" names the crew skill that will shift a choice's odds in a later build. It is not used yet. */
+   "skill" names the crew skill whose officer shifts a choice's odds (see Officers in index.html). "art" borrows another
+   encounter's painting. Every encounter should have a painting listed in data/paintings.js. */
 STARSHIP.ENCOUNTERS = [
   { id: "distress", title: "The distress call",
     text: ["A freighter, the Marisol Dawn, is broadcasting on an old civilian band. Her reactor is failing and she has forty people aboard. The voice on the channel is calm in the way of someone who has already done the sums.",

@@ -365,7 +365,15 @@ button.act small.nohelp { opacity: .6; }
 <script src="data/relics.js"></script>
 <script src="data/crew.js"></script>
 <script>
+/* Starship: the game. Content (encounters, missions, paintings, relics, crew names) is in data/ and loads first.
+   Sections, in order (search for "---------- name"):
+     Numbers and tables · Pictures · Sound · Playtest tuning · Game state and small helpers · Making a galaxy ·
+     Saving, travel and sectors · Battle · Boarding · Battle events · Galaxy traits · Raids on starbases · Relics ·
+     Starbase jobs · Officers · Away missions · Encounters and their effects · Shipyard ·
+     Jump gates, Dominion alert and reinforcements · Score, record and captain's log · Achievements · How to play ·
+     Drawing the screen · Buttons and taps · Start-up */
 (function () {
+  /* ---------- Numbers and tables ---------- */
   var N = 8, SAVE_KEY = "starship-save-v6";
   /* Every tunable number lives in K, STARS, ODDS, LASER, TORP, FOES and the cost lists in UPGRADES.
      The tuning screen edits these, and its changes are stored separately as overrides on top of the values written here. */
@@ -476,7 +484,8 @@ button.act small.nohelp { opacity: .6; }
     "Her cargo bay still held sealed repair stores. The crew worked through the night.",
     "An old survey ship, abandoned in good order. Her spare frames fit ours almost exactly."
   ];
-  /* ---------- Pictures. All drawn here as vector shapes, so there are no image files. ---------- */
+  /* ---------- Pictures ----------
+     Paintings (art/, listed in data/paintings.js) where they exist; otherwise a scene drawn here as vector shapes. */
   /* Encounter scenes: [sky top, sky bottom, nebula colour, stars?, subject]. A shared filter roughens the edges like brushwork. */
   function G(x, y, r, c, core) { return '<circle cx="' + x + '" cy="' + y + '" r="' + r + '" fill="' + c + '" opacity=".45" filter="url(#soft)"/>' + (core === 0 ? "" : '<circle cx="' + x + '" cy="' + y + '" r="' + (core || 3) + '" fill="' + c + '"/>'); }
   function mine(x, y, r) {
@@ -731,7 +740,7 @@ button.act small.nohelp { opacity: .6; }
   })();
   var DEFAULTS = JSON.stringify({ K: K, STARS: STARS, ODDS: ODDS, LASERS: LASERS, TORPS: TORPS, TORP: TORP, FOES: FOES, UPGRADES: UPGRADES.map(function (u) { return { cost: u.cost }; }) });
   var DEF = JSON.parse(DEFAULTS);
-  var TUNE_KEY = "starship-tuning-v1", tune = { o: {}, t: 0 }, tuning = false, resetArmed = false, db = null, online = "", writing = false, pending = false;
+  var TUNE_KEY = "starship-tuning-v1", tune = { o: {}, t: 0 }, tuning = false, resetArmed = false;
   function atPath(root, path, value) {
     var parts = path.split("."), o = root, i;
     for (i = 0; i < parts.length - 1; i++) { o = o[parts[i]]; if (o === undefined || o === null) return undefined; }
@@ -754,35 +763,9 @@ button.act small.nohelp { opacity: .6; }
     var el = document.getElementById("tuneStatus"); if (!el) return;
     var n = Object.keys(tune.o).length;
     el.textContent = (n ? n + " number" + (n > 1 ? "s" : "") + " changed from the defaults. " : "Every number is at its default. ") +
-      (online === "ok" ? "Saved on this device and with the game online." : online === "failed" ? "Saved on this device. The online copy could not be updated." : "Saved on this device.");
+      "Saved on this device.";
   }
-  function pushTune() {
-    if (!db) return;
-    if (writing) { pending = true; return; }
-    writing = true;
-    db.doc("tuning/current").set({ overrides: JSON.stringify(tune.o), changed: Object.keys(tune.o).length, updated: tune.t })
-      .then(function () { online = "ok"; }, function () { online = "failed"; })
-      .then(function () { writing = false; tuneStatus(); if (pending) { pending = false; pushTune(); } });
-  }
-  function saveTune() { tune.t = Date.now(); keepLocal(); pushTune(); tuneStatus(); }
-  /* The online copy is optional. When it can be reached, the newer of the two copies wins. */
-  function syncTune() {
-    if (!window.claude || !window.claude.use) return;
-    window.claude.use("db").then(function (d) {
-      if (!d) return;
-      db = d;
-      return d.doc("tuning/current").get().then(function (snap) {
-        var body = snap.exists ? snap.data() : null, o = null;
-        if (body) { try { o = JSON.parse(body.overrides); } catch (e) {} }
-        if (o && typeof o === "object" && (body.updated || 0) > tune.t) {
-          tune = { o: o, t: body.updated }; keepLocal(); applyTuning(); online = "ok";
-          if (tuning) openTuning(); else render();
-        } else if (tune.t > ((body && body.updated) || 0) && (body || Object.keys(tune.o).length)) pushTune();
-        else online = "ok";
-        tuneStatus();
-      });
-    }).catch(function () { online = "failed"; tuneStatus(); });
-  }
+  function saveTune() { tune.t = Date.now(); keepLocal(); tuneStatus(); }
   function shown(f, v) { return f.pct ? Math.round(v * 100) : Math.round(v * 100) / 100; }
   function tuneHtml() {
     var h = '<span class="label">Playtest tuning</span><h2>Game numbers</h2>' +
@@ -813,6 +796,7 @@ button.act small.nohelp { opacity: .6; }
     applyTuning(); saveTune(); tuneCounts();
   }
 
+  /* ---------- Game state and small helpers ---------- */
   var state, armed = false, gateArmed = false;
   var $ = function (id) { return document.getElementById(id); };
   var rnd = function (n) { return Math.floor(Math.random() * n); };
@@ -863,6 +847,7 @@ button.act small.nohelp { opacity: .6; }
   /* The last galaxy of the campaign is held by the flagship; every other gate by a gatekeeper. */
   var gateKind = function (depth) { return depth === K.GALAXIES ? 5 : 4; };
 
+  /* ---------- Making a galaxy ---------- */
   function makeGalaxy(depth, trait) {
     var tr = traitById(trait);
     var grid = [], i;
@@ -909,11 +894,20 @@ button.act small.nohelp { opacity: .6; }
   function newGame() {
     var g = makeGalaxy(1), grid = g.grid, home = g.home;
     return {
-      v: 6, depth: 1, foundTotal: 0, up: {}, yard: false, codes: false, arrived: 1, alertLevel: 0, lastDay: 1, hunter: null, killsBy: [0, 0, 0, 0, 0, 0], chartedTotal: 0, encDone: 0, won: false, wonDay: 0, endless: false, laser: "pulse", torp: "proton", owned: { "L:pulse": 1, "T:proton": 1 }, vid: "v" + Date.now().toString(36) + rnd(1e6).toString(36), crew: newCrew(), relics: [], trait: null, patrols: [], raiders: makeRaiders(grid), job: null, jobsDone: 0, boarded: 0, elitesBeaten: 0, patrolsBeaten: 0, awayDone: 0, lostOfficer: false, started: Date.now(), grid: grid, pos: home, sel: null, energy: K.START_ENERGY, maxEnergy: K.START_ENERGY, hull: K.HULL, day: 1, found: 0, mats: 0, scanDown: 0, torps: K.TORP_MAX, kills: 0, prev: home, fight: null, enc: null, seen: [], over: null,
-      log: [{ d: 1, s: "New to the Explorer? Tap How to play at the bottom of the screen for the rules." }, { d: 1, s: "Explorer cleared for departure from the starbase at " + name(home) + ". The chart is blank. Go and fill it in." }]
+      v: 6, depth: 1, foundTotal: 0, up: {}, yard: false, codes: false, arrived: 1, alertLevel: 0, lastDay: 1, hunter: null,
+      killsBy: [0, 0, 0, 0, 0, 0], chartedTotal: 0, encDone: 0, won: false, wonDay: 0, endless: false,
+      laser: "pulse", torp: "proton", owned: { "L:pulse": 1, "T:proton": 1 }, vid: "v" + Date.now().toString(36) + rnd(1e6).toString(36),
+      crew: newCrew(), relics: [], trait: null, patrols: [], raiders: makeRaiders(grid), job: null,
+      jobsDone: 0, boarded: 0, elitesBeaten: 0, patrolsBeaten: 0, awayDone: 0, lostOfficer: false, started: Date.now(),
+      grid: grid, pos: home, sel: null, energy: K.START_ENERGY, maxEnergy: K.START_ENERGY, hull: K.HULL, day: 1,
+      found: 0, mats: 0, scanDown: 0, torps: K.TORP_MAX, kills: 0, prev: home, fight: null, enc: null, seen: [], over: null,
+      log: [{ d: 1, s: "New to the Explorer? Tap How to play at the bottom of the screen for the rules." },
+        { d: 1, s: "Explorer cleared for departure from the starbase at " + name(home) + ". The chart is blank. Go and fill it in." }]
     };
   }
 
+  /* ---------- Saving, travel and sectors ----------
+     Saving the voyage; warping, scanning, docking, mining, salvage and repairs. */
   function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) {} }
   function load() {
     try {
@@ -1163,7 +1157,11 @@ button.act small.nohelp { opacity: .6; }
     var ter = cell.t === "kethari" ? (cell.ter || "open") : ({ nebula: "nebula", asteroids: "asteroids", star: "star", blackhole: "gravity" })[cell.t] || "open";
     var f = { kind: c.kind, hp: c.hp, max: c.max || Math.max(foe.hull, c.hp), name: c.name || foe.n, sh: foe.shield, w: 100, e: foe.engines ? 100 : null, torps: foe.torps, range: 2, charged: false, moved: false, silenced: false,
       turn: 1, bank: 0, ter: ter, out: { la: false, to: false, en: false }, a: newAlloc() };
-    f.amb = !!ambush; if (c.elite) f.elite = c.elite; if (c.patrol !== undefined) f.patrol = c.patrol; if (c.raider !== undefined) f.raider = c.raider; f.ev = Math.random() < K.EVENT_CHANCE ? "pending" : null;
+    f.amb = !!ambush;
+    if (c.elite) f.elite = c.elite;
+    if (c.patrol !== undefined) f.patrol = c.patrol;
+    if (c.raider !== undefined) f.raider = c.raider;
+    f.ev = Math.random() < K.EVENT_CHANCE ? "pending" : null;
     f.intent = pickIntent(f); f.repair = pickRepair(f);
     state.fight = f; sfx("alert", .4);
   }
@@ -1943,6 +1941,7 @@ button.act small.nohelp { opacity: .6; }
 
   function encById(id) { var all = ENCOUNTERS.concat(MISSIONS); for (var i = 0; i < all.length; i++) if (all[i].id === id) return all[i]; return ENCOUNTERS[0]; }
   /* where: "space" (open space and anomalies), "nebula" or "asteroids". Each place has its own pool, which refills once all of it has been seen. */
+  /* ---------- Encounters and their effects ---------- */
   function startEncounter(where) {
     where = where || "space";
     var all = ENCOUNTERS.filter(function (x) { return (x.where || "space") === where; });
@@ -2042,6 +2041,7 @@ button.act small.nohelp { opacity: .6; }
       '<div class="actions"><button type="button" class="act" data-e="done">' + (x.fight !== null && state.hull > 0 ? "Battle stations" : "Continue") + "</button></div>";
   }
 
+  /* ---------- Shipyard ---------- */
   function upgradeById(id) { for (var i = 0; i < UPGRADES.length; i++) if (UPGRADES[i].id === id) return UPGRADES[i]; return null; }
   function nextCost(u) { var l = lvl(u.id); return l < u.cost.length ? u.cost[l] : null; }
   function openYard() { if (!state.over && here().t === "base") state.yard = true; }
@@ -2094,6 +2094,7 @@ button.act small.nohelp { opacity: .6; }
     });
     return h + '<div class="actions gap"><button type="button" class="act second" data-u="leave">Leave the shipyard</button></div>';
   }
+  /* ---------- Jump gates, Dominion alert and reinforcements ---------- */
   function jump() {
     var gc = here();
     if (state.over || gc.t !== "gate" || state.energy < K.GATE_COST) return;
@@ -2164,6 +2165,7 @@ button.act small.nohelp { opacity: .6; }
   }
 
   /* Score, rank and the record of best voyages. */
+  /* ---------- Score, record and captain's log ---------- */
   var KILL_POINTS = [50, 80, 120, 200, 300, 1500], RANKS = [[0, "Cadet"], [500, "Pilot"], [1500, "Navigator"], [3000, "Captain"], [5000, "Commodore"], [8000, "Pathfinder"]];
   function scoreParts() {
     var s = state, k = 0, i, charted = s.chartedTotal + s.grid.filter(function (c) { return c.known; }).length;
@@ -2332,6 +2334,7 @@ button.act small.nohelp { opacity: .6; }
     return h + '<div class="actions gap">' + btn("helpclose", "Back to the game") + "</div>";
   }
 
+  /* ---------- Drawing the screen ---------- */
   function btn(act, label, sub, opts) {
     opts = opts || {};
     return '<button type="button" class="act' + (opts.second ? " second" : "") + '" data-act="' + act + '"' +
@@ -2459,7 +2462,12 @@ button.act small.nohelp { opacity: .6; }
     save();
   }
 
-  var ACTS = { scan: scan, collect: collect, dock: dock, hire: function () { crewOpen = true; crewEdit = null; }, takejob: takeJob, dropjob: dropJob, land: openLanding, mine: mineField, survey: surveyNebula, salvage: salvage, wormhole: wormhole, repair: repair, yard: openYard, jump: jump, engage: engage, btorp: buyTorpedo };
+  /* ---------- Buttons and taps ---------- */
+  var ACTS = {
+    scan: scan, collect: collect, dock: dock, hire: function () { crewOpen = true; crewEdit = null; }, takejob: takeJob, dropjob: dropJob,
+    land: openLanding, mine: mineField, survey: surveyNebula, salvage: salvage, wormhole: wormhole, repair: repair, yard: openYard,
+    jump: jump, engage: engage, btorp: buyTorpedo
+  };
   $("grid").addEventListener("click", function (e) {
     var b = e.target.closest(".cell"); if (!b || state.over || state.fight || state.enc || state.landing) return;
     gateArmed = false; sfx("tap");
@@ -2538,29 +2546,30 @@ button.act small.nohelp { opacity: .6; }
     state = newGame(); render();
   });
 
-  function start(data) {
-    loadTuneLocal(); applyTuning();
-    var d = data && data.state;
-    state = (d && d.v === 6 ? d : null) || load() || newGame();
-    if (!state.seen) state.seen = [];
-    if (!state.up) state.up = {};
-    if (!state.owned) { state.owned = { "L:pulse": 1, "T:proton": 1 }; state.laser = "pulse"; state.torp = "proton"; }
-    if (state.hull > K.HULL) state.hull = K.HULL;
-    if (state.enc === undefined) state.enc = null;
-    if (state.crew) givePortraits();
-    if (!state.crew) { state.crew = newCrew(); note("Five officers have joined the Explorer. Tap Crew to meet them."); }
-    if (!state.relics) state.relics = [];
-    if (!state.patrols) state.patrols = [];
-    state.grid.forEach(function (c) { if (c.t === "base" && c.cap === undefined) c.cap = K.BASE_CAP; });
-    if (!state.raiders) state.raiders = makeRaiders(state.grid);
-    if (state.job === undefined) state.job = null;
-    if (state.lostOfficer === undefined) state.lostOfficer = state.crew.some(function (o) { return o.st === "lost"; });
-    render();
-    syncTune();
+  /* ---------- Start-up ---------- */
+  /* Bring a voyage saved by an older build up to date. Each line fills in something a later build added. */
+  function upgradeSave(s) {
+    if (!s.seen) s.seen = [];                                            /* encounters already met */
+    if (!s.up) s.up = {};                                                /* upgrades */
+    if (!s.owned) { s.owned = { "L:pulse": 1, "T:proton": 1 }; s.laser = "pulse"; s.torp = "proton"; }  /* weapon fits */
+    if (s.hull > K.HULL) s.hull = K.HULL;
+    if (s.enc === undefined) s.enc = null;
+    if (s.crew) givePortraits();                                         /* crew portraits (build 21) */
+    if (!s.crew) { s.crew = newCrew(); note("Five officers have joined the Explorer. Tap Crew to meet them."); }  /* officers (build 10) */
+    if (!s.relics) s.relics = [];                                        /* relics (build 14) */
+    if (!s.patrols) s.patrols = [];                                      /* patrols (build 14) */
+    s.grid.forEach(function (c) { if (c.t === "base" && c.cap === undefined) c.cap = K.BASE_CAP; });  /* raids (build 18) */
+    if (!s.raiders) s.raiders = makeRaiders(s.grid);
+    if (s.job === undefined) s.job = null;                               /* starbase jobs (build 14) */
+    if (s.lostOfficer === undefined) s.lostOfficer = s.crew.some(function (o) { return o.st === "lost"; });
   }
-  var hot = window.claude && window.claude.hot;
-  if (hot && hot.snapshot) hot.snapshot(function () { return { state: state }; });
-  if (hot && hot.ready) hot.ready(start); else start((hot && hot.data) || {});
+  function start() {
+    loadTuneLocal(); applyTuning();
+    state = load() || newGame();
+    upgradeSave(state);
+    render();
+  }
+  start();
 })();
 </script>
 <script>
