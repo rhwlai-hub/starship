@@ -373,7 +373,7 @@ button.act small.nohelp { opacity: .6; }
     BASE_CAP: 1000, RAID_DMG0: 30, RAID_DMG1: 80, RAID_DMG2: 150, RAID_SHARE: .5, RAID_FROM: 2, RELIEF_MATS: 25, RELIEF_HULL: 10, LAST_BASE_MIN: 100,
     AWAY_COST: 20, AST_MINES: 2, AST_MAT_MIN: 25, AST_MAT_MAX: 45, AST_MINE_DMG: 6, SLOW_SHARE: .5, NEB_FIND: .6,
     POWER: 6, POWER_COST: 8, SHIELD_PER: 6, MOVE_COST: 2, BREAK_COST: 3, BANK_MAX: 3, SYS_FACTOR: 250, SYS_HULL_SHARE: .5, REPAIR_SYS: 10, REPAIR_SHIELD_DIV: 10, CRIT_AT: 8, DC_COST: 2, STAR_CHARGE: 20,
-    FLEE_AT: .25, SURRENDER_AT: .3, SURRENDER_CHANCE: .5,
+    FLEE_AT: .25, SURRENDER_AT: .3, SURRENDER_CHANCE: .5, BEAM_MULT: 1.35, GATE_GROWTH: .1,
     DEPTH_HULL: .25, DEPTH_LOOT: .2, DEPTH_NUMBERS: .3,
     OFF_SHIFT: .08, OFF_XP2: 3, OFF_XP3: 8, OFF_INJURE: .35, OFF_LOSE: .03, OFF_LOSE_HURT: .2, INJURY_MIN: 4, INJURY_MAX: 8, MED_HEAL: 1, RECRUIT_COST: 30,
     CAP_GAIN: 150, BAY_GAIN: 2, ENG_SAVE: 8, ENG_RANGE: .4, SOL_GAIN: .25
@@ -403,8 +403,8 @@ button.act small.nohelp { opacity: .6; }
     { n: "Inhabited world", c: "#d98cf0" }
   ];
   /* Relative odds for each kind of feature. Starbases are placed separately. */
-  var ODDS = [["star", 18], ["nebula", 8], ["asteroids", 8], ["anomaly", 6], ["planet", 10],
-    ["derelict", 5], ["wormhole", 3], ["ionstorm", 4], ["blackhole", 2], ["raider", 5], ["gunship", 3], ["carrier", 2], ["outpost", 2]];
+  var ODDS = [["star", 18], ["nebula", 8], ["asteroids", 8], ["anomaly", 6], ["planet", 16],
+    ["derelict", 5], ["wormhole", 3], ["ionstorm", 4], ["blackhole", 2], ["raider", 3], ["gunship", 2], ["carrier", 1], ["outpost", 1]];
   /* Combat. The enemy's move is shown before you choose. Weapon damage is then rolled on dice (LASER holds the die size per range). */
   var TORP = [3, 8]; /* Kethari torpedoes */
   /* Weapons the shipyard can fit. die: laser die at close, medium and long range. d: torpedo [dice, sides] at each range.
@@ -426,10 +426,10 @@ button.act small.nohelp { opacity: .6; }
   var RANGES = ["Close", "Medium", "Long"];
   /* beam: [dice, sides] at close, medium and long range. Torpedoes do 3d8 at any range. shield is a pool that regen refills each turn. */
   var FOES = [
-    { n: "Kethari raider", hull: 28, shield: 10, regen: 4, beam: [[5, 8], [3, 6], [1, 6]], torps: 0, loot: [25, 35], about: "Fast and vicious up close, feeble at long range. It will try to close in." },
-    { n: "Kethari gunship", hull: 35, shield: 14, regen: 5, beam: [[1, 8], [3, 6], [4, 8]], torps: 3, loot: [35, 50], about: "Long guns, slow engines and a few torpedoes. Its beams are deadly at long range and weak up close." },
-    { n: "Kethari carrier", hull: 45, shield: 18, regen: 6, beam: [[2, 6], [4, 8], [2, 6]], torps: 2, loot: [50, 70], about: "Its fighters hit hardest at medium range. It is exposed while it recovers them." },
-    { n: "Kethari outpost", hull: 60, shield: 24, regen: 8, beam: [[4, 6], [4, 6], [2, 6]], torps: 4, loot: [70, 100], about: "A fortified listening post that carries the gate codes. Its batteries pause to reload every third turn." },
+    { n: "Kethari raider", hull: 28, shield: 10, regen: 4, beam: [[5, 8], [3, 6], [1, 6]], torps: 0, loot: [20, 28], about: "Fast and vicious up close, feeble at long range. It will try to close in." },
+    { n: "Kethari gunship", hull: 35, shield: 14, regen: 5, beam: [[1, 8], [3, 6], [4, 8]], torps: 3, loot: [28, 40], about: "Long guns, slow engines and a few torpedoes. Its beams are deadly at long range and weak up close." },
+    { n: "Kethari carrier", hull: 45, shield: 18, regen: 6, beam: [[2, 6], [4, 8], [2, 6]], torps: 2, loot: [40, 56], about: "Its fighters hit hardest at medium range. It is exposed while it recovers them." },
+    { n: "Kethari outpost", hull: 60, shield: 24, regen: 8, beam: [[4, 6], [4, 6], [2, 6]], torps: 4, loot: [56, 80], about: "A fortified listening post that carries the gate codes. Its batteries pause to reload every third turn." },
     { n: "Kethari gatekeeper", hull: 75, shield: 24, regen: 8, beam: [[4, 8], [4, 8], [3, 8]], torps: 4, loot: [60, 90], about: "The warship that holds the jump gate. Dangerous at every range, and it never leaves its post." },
     { n: "Dominion flagship", hull: 160, shield: 40, regen: 10, beam: [[5, 8], [5, 8], [4, 8]], torps: 6, loot: [150, 200], about: "The pride of the Kethari Dominion, holding the last gate. Destroying it wins the voyage." }
   ];
@@ -439,7 +439,7 @@ button.act small.nohelp { opacity: .6; }
     torp: "Launching a torpedo. Its damage is the same at any range.",
     heavy: "Firing its charged main guns: double the usual dice.",
     charge: "Charging its main guns. It will not fire this turn, but its next shot will be heavy.",
-    closer: "Firing half its usual dice, then closing in.",
+    closer: "Firing half its usual dice, then closing in. If you back away it gives chase at full fire.",
     away: "Firing half its usual dice, then pulling back.",
     recover: "Recovering its fighters. It cannot attack this turn and takes extra damage.",
     reload: "Reloading its batteries. It cannot fire this turn.",
@@ -2135,6 +2135,20 @@ button.act small.nohelp { opacity: .6; }
           { w: 55, text: "Security catches the agents who sabotaged her ship. She is grateful, and so is her government.", fx: { m: 40, ket: 1 } },
           { w: 45, text: "The agents get away, after a short, sharp fight.", fx: { h: -8 } } ] } ] }
   ];
+  /* Balance (Nov 2026): move outcome odds within each choice by skill. Positive: points move from the worst outcome to the best;
+     negative: from the best to the worst. Lifts the weak piloting choices and trims the strongest medical and science ones.
+     No outcome falls below 5. */
+  var SKILL_TILT = { piloting: 15, diplomacy: 5, tactical: 5, engineering: 0, medical: -8, science: -8 };
+  (function tiltSkills() {
+    ENCOUNTERS.concat(MISSIONS).forEach(function (en) { en.choices.forEach(function (ch) {
+      var t = SKILL_TILT[ch.skill] || 0, o = ch.outcomes; if (!t || o.length < 2) return;
+      var v = o.map(function (x) { return fxValue(x.fx); }), best = 0, worst = 0, i;
+      for (i = 1; i < o.length; i++) { if (v[i] > v[best]) best = i; if (v[i] < v[worst]) worst = i; }
+      if (best === worst || v[best] === v[worst]) return;
+      var from = t > 0 ? worst : best, to = t > 0 ? best : worst, move = Math.min(Math.abs(t), o[from].w - 5);
+      if (move > 0) { o[from].w -= move; o[to].w += move; }
+    }); });
+  })();
   var SALVAGE_GOOD = [
     "The wreck's hull plating was intact. Engineering cut it free and welded it over our own scars.",
     "Her cargo bay still held sealed repair stores. The crew worked through the night.",
@@ -2481,6 +2495,7 @@ button.act small.nohelp { opacity: .6; }
     g = "Battle: the enemy";
     fld(g, "Weapons and engines: damage divided by hull, times this, is the % lost", "K.SYS_FACTOR"); fld(g, "Kethari torpedo: number of dice", "TORP.0"); fld(g, "Kethari torpedo: die size", "TORP.1", "die"); fld(g, "Share of that damage that also hits the hull, %", "K.SYS_HULL_SHARE", "pct");
     fld(g, "Repair to weapons or engines a turn, %", "K.REPAIR_SYS"); fld(g, "Shield repair a turn: hull divided by", "K.REPAIR_SHIELD_DIV", "die");
+    fld(g, "Raiders, gunships, carriers and outposts: beam dice multiplied by", "K.BEAM_MULT", "dec"); fld(g, "Gatekeeper: hull and shield increase a galaxy, %", "K.GATE_GROWTH", "pct");
     fld(g, "Hull left when a ship may flee, %", "K.FLEE_AT", "pct"); fld(g, "Hull left when surrender can be demanded, %", "K.SURRENDER_AT", "pct"); fld(g, "Chance it surrenders, %", "K.SURRENDER_CHANCE", "pct");
     FOES.forEach(function (f, i) {
       g = "Battle: " + f.n; var b = "FOES." + i + ".";
@@ -2636,8 +2651,9 @@ button.act small.nohelp { opacity: .6; }
   var blinded = function () { return here().t === "nebula" && lvl("scn") < 2; };
   function foeAt(kind, depth) {
     var b = FOES[kind], d = kind === 5 ? 0 : depth - 1, extra = Math.floor(d / 2);
-    return { n: b.n, about: b.about, engines: kind < 2, hull: Math.round(b.hull * (1 + K.DEPTH_HULL * d)), shield: Math.round((b.shield || 0) * (1 + K.DEPTH_HULL * d)), regen: (b.regen || 0) + extra, torps: b.torps ? b.torps + extra : 0,
-      beam: b.beam.map(function (x) { return [x[0] + extra, x[1]]; }),
+    var grow = kind === 4 ? K.GATE_GROWTH : K.DEPTH_HULL, mult = kind <= 3 ? K.BEAM_MULT : 1;
+    return { n: b.n, about: b.about, engines: kind < 2, hull: Math.round(b.hull * (1 + grow * d)), shield: Math.round((b.shield || 0) * (1 + grow * d)), regen: (b.regen || 0) + extra, torps: b.torps ? b.torps + extra : 0,
+      beam: b.beam.map(function (x) { return [Math.max(1, Math.round(x[0] * mult)) + extra, x[1]]; }),
       loot: [Math.round(b.loot[0] * (1 + K.DEPTH_LOOT * d)), Math.round(b.loot[1] * (1 + K.DEPTH_LOOT * d))] };
   }
   function byId(list, id) { for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i]; return list[0]; }
@@ -2983,7 +2999,8 @@ button.act small.nohelp { opacity: .6; }
     var it = f.intent, b = foe.beam[fr], n;
     if (f.silenced || f.held) return null;
     if (it === "torp") return TORP[0] > 0 ? [TORP[0], TORP[1]] : null;
-    if (it === "fire") n = b[0]; else if (it === "heavy") n = b[0] * 2; else if (it === "closer" || it === "away") n = Math.ceil(b[0] / 2); else return null;
+    if (it === "fire") n = b[0]; else if (it === "heavy") n = b[0] * 2; else if (it === "closer" && f.a && f.a.move === 1) n = b[0]; /* it gives chase at full fire when the Explorer backs away */
+    else if (it === "closer" || it === "away") n = Math.ceil(b[0] / 2); else return null;
     n = terrainDice(Math.ceil(n * f.w / 100), f, fr);
     return n > 0 ? [n, b[1]] : null;
   }
@@ -3978,7 +3995,8 @@ button.act small.nohelp { opacity: .6; }
     return true;
   }
   function reinforce(level) {
-    var kinds = level === 1 ? [0] : level === 2 ? [1] : level === 3 ? [0, 2] : [rnd(3)], names = [];
+    /* Alert 1 brings no ship; 2 a raider; 3 a gunship; 4 a raider and a carrier; 5 and above one more each. */
+    var kinds = level === 1 ? [] : level === 2 ? [0] : level === 3 ? [1] : level === 4 ? [0, 2] : [rnd(3)], names = [];
     kinds.forEach(function (k) { if (spawnRaider(k)) names.push(foeNow(k).n); });
     var msg = "Dominion alert rises to " + level + "." + (names.length ? " Reinforcements have warped in: " + names.join(" and ") + "." : "");
     if (level >= 4 && !state.hunter) {
