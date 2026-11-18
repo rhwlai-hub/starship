@@ -100,12 +100,15 @@ body {
 .cell.known[data-t="blackhole"]::before { width: 34%; height: 34%; border-radius: 50%; background: #000; box-shadow: 0 0 0 2px var(--nebula), 0 0 8px 2px var(--nebula); }
 .cell.known[data-t="kethari"]::before { width: 46%; height: 42%; background: var(--danger); clip-path: polygon(0 0, 100% 0, 50% 100%); }
 .cell.known[data-t="kethari"][data-k="3"]::before { clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.cell.known[data-t="signal"]::before { width: 52%; height: 52%; background: var(--energy); clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); filter: drop-shadow(0 0 4px var(--energy)); }
 .cell.known[data-t="gate"]::before { width: 46%; height: 46%; border: 2px solid var(--hull); border-radius: 4px; background: radial-gradient(circle, var(--hull) 0 20%, transparent 24%); }
 .cell.known.spent::before { opacity: .4; }
 .cell.here::before { opacity: .25; }
 .cell .me { position: absolute; inset: 0; margin: auto; width: 58%; height: 58%; }
 .cell .me path { fill: var(--text); }
 
+ul.story { margin: 6px 0 10px; padding-left: 18px; }
+ul.story li { margin: 4px 0; }
 .key { margin-top: 10px; font-size: 13px; color: var(--muted); }
 .key summary { cursor: pointer; padding: 6px 0; font-family: var(--display); letter-spacing: .08em; }
 .key ul { list-style: none; margin: 6px 0 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; }
@@ -339,6 +342,7 @@ button.act small.nohelp { opacity: .6; }
         <li><i class="cell known" data-t="star"></i>Star</li>
         <li><i class="cell known" data-t="base"></i>Starbase</li>
         <li><i class="cell known siege" data-t="base"></i>Starbase under attack</li>
+        <li><i class="cell known" data-t="signal"></i>Story signal</li>
         <li><i class="cell"></i>Uncharted</li>
         <li><i class="cell known" data-t="wormhole"></i>Wormhole</li>
       </ul>
@@ -354,7 +358,7 @@ button.act small.nohelp { opacity: .6; }
   </section>
 
   <div class="foot">
-    <span>Build 23: tidy</span>
+    <span>Build 24: story arcs</span>
     <span class="footbtns"><button id="soundBtn" type="button">Sound: all</button><button id="helpBtn" type="button">How to play</button><button id="recBtn" type="button">Record</button><button id="tuneBtn" type="button">Tuning</button><button id="newGame" type="button">New game</button></span>
   </div>
 </div>
@@ -364,6 +368,7 @@ button.act small.nohelp { opacity: .6; }
 <script src="data/paintings.js"></script>
 <script src="data/relics.js"></script>
 <script src="data/crew.js"></script>
+<script src="data/arcs.js"></script>
 <script>
 /* Starship: the game. Content (encounters, missions, paintings, relics, crew names) is in data/ and loads first.
    Sections, in order (search for "---------- name"):
@@ -383,6 +388,9 @@ button.act small.nohelp { opacity: .6; }
     ASTEROID_MIN: 8, ASTEROID_MAX: 15, BLACKHOLE_DMG: 5, ION_MIN: 60, ION_MAX: 120, ION_DAYS: 3,
     BOARD_BASE: .4, BOARD_OUTPOST: 0, BOARD_PER_LVL: .15, BOARD_WEAP: .15, BOARD_HULL: .2, BOARD_LOOT: 2, EVENT_CHANCE: .33, EV_BASE: .55, EV_PER_LVL: .15, EV_NONE: .3,
     ELITE_FROM: 3, ELITE_CHANCE: .25, ELITE_LOOT: 1.5, RELIC_MISSION: .2, RELIC_DERELICT: .15, RELIC_BOARD: .35, RELIC_ELITE: .5, JOB_RELIC: .2, JOB_MAT_MIN: 40, JOB_MAT_MAX: 60, PATROLS: 2, STRONGHOLD: .67, BELT_GAIN: .5,
+    /* Story arcs: points needed for endings 2 to 5 (fewer points: ending 1), points lost for a missed chapter, and each ending's
+       effect on the flagship: hull and shields multiplied by these (endings worst first). */
+    ARC_TIERS: [2, 5, 7, 9], ARC_MISS: 1, ARC_HULL: [1.14, 1, 1, .9, .76], ARC_SHIELD: [1, 1, .72, .67, .67],
     BASE_CAP: 1000, RAID_DMG0: 30, RAID_DMG1: 80, RAID_DMG2: 150, RAID_SHARE: .5, RAID_FROM_BY_GALAXY: [5, 4, 3, 2, 2], RELIEF_MATS: 25, RELIEF_HULL: 10, LAST_BASE_MIN: 100,
     AWAY_COST: 20, AST_MINES: 2, AST_MAT_MIN: 25, AST_MAT_MAX: 45, AST_MINE_DMG: 6, SLOW_SHARE: .5, NEB_FIND: .6,
     POWER: 6, POWER_COST: 5, SHIELD_PER: 6, MOVE_COST: 2, BREAK_COST: 3, BANK_MAX: 3, SYS_FACTOR: 250, SYS_HULL_SHARE: .5, REPAIR_SYS: 10, REPAIR_SHIELD_DIV: 10, CRIT_AT: 8, DC_COST: 2, STAR_CHARGE: 20,
@@ -446,7 +454,7 @@ button.act small.nohelp { opacity: .6; }
     { n: "Kethari carrier", hull: 45, shield: 18, regen: 6, beam: [[2, 6], [4, 8], [2, 6]], torps: 2, loot: [40, 56], about: "Its fighters hit hardest at medium range. It is exposed while it recovers them." },
     { n: "Kethari outpost", hull: 60, shield: 24, regen: 8, beam: [[4, 6], [4, 6], [2, 6]], torps: 4, loot: [56, 80], about: "A fortified listening post that carries the gate codes. Its batteries pause to reload every third turn." },
     { n: "Kethari gatekeeper", hull: 75, shield: 24, regen: 8, beam: [[4, 8], [4, 8], [3, 8]], torps: 4, loot: [60, 90], about: "The warship that holds the jump gate. Dangerous at every range, and it never leaves its post." },
-    { n: "Dominion flagship", hull: 340, shield: 40, regen: 10, beam: [[6, 8], [6, 8], [5, 8]], torps: 6, loot: [150, 200], about: "The pride of the Kethari Dominion, holding the last gate. Destroying it wins the voyage." }
+    { n: "Dominion flagship", hull: 410, shield: 60, regen: 10, beam: [[6, 8], [6, 8], [5, 8]], torps: 6, loot: [150, 200], about: "The pride of the Kethari Dominion, holding the last gate. Destroying it wins the voyage." }
   ];
   var FOE_KIND = { raider: 0, gunship: 1, carrier: 2, outpost: 3 };
   var INTENT = {
@@ -730,6 +738,13 @@ button.act small.nohelp { opacity: .6; }
     fld(g, "Starbase recharge limit at the start", "K.BASE_CAP"); fld(g, "Share of Kethari ships that raid, %", "K.RAID_SHARE", "pct"); [1, 2, 3, 4, 5].forEach(function (n) { fld(g, "Alert level when raiders start moving, galaxy " + n, "K.RAID_FROM_BY_GALAXY." + (n - 1)); });
     fld(g, "Damage to a starbase a day: raider", "K.RAID_DMG0"); fld(g, "Damage to a starbase a day: gunship", "K.RAID_DMG1"); fld(g, "Damage to a starbase a day: carrier", "K.RAID_DMG2");
     fld(g, "Reward for breaking a raid: materials", "K.RELIEF_MATS"); fld(g, "Reward for breaking a raid: hull", "K.RELIEF_HULL"); fld(g, "Lowest a galaxy's last starbase can fall to", "K.LAST_BASE_MIN");
+    g = "Story arcs";
+    ["Betrayed (worst)", "Nothing gained", "Inside source", "Sabotage", "Allies (best)"].forEach(function (nm, i) {
+      if (i) fld(g, "Story points needed for ending " + (i + 1) + ", " + nm, "K.ARC_TIERS." + (i - 1), "die");
+      fld(g, "Ending " + (i + 1) + ", " + nm + ": flagship hull, % of normal", "K.ARC_HULL." + i, "pct");
+      fld(g, "Ending " + (i + 1) + ", " + nm + ": flagship shields, % of normal", "K.ARC_SHIELD." + i, "pct");
+    });
+    fld(g, "Story points lost for a missed chapter", "K.ARC_MISS");
     g = "Deeper galaxies";
     fld(g, "Kethari hull increase a galaxy, %", "K.DEPTH_HULL", "pct"); fld(g, "Loot increase a galaxy, %", "K.DEPTH_LOOT", "pct"); fld(g, "More Kethari a galaxy, %", "K.DEPTH_NUMBERS", "pct");
     g = "Upgrade costs";
@@ -820,6 +835,12 @@ button.act small.nohelp { opacity: .6; }
   function byGalaxy(list, depth) { return list[Math.max(0, Math.min(list.length, depth || 1) - 1)]; }
   function raidFrom() { return byGalaxy(K.RAID_FROM_BY_GALAXY, (state && state.depth) || 1); }
   function foeAt(kind, depth) {
+    if (kind === 5 && state && state.arc && typeof state.arc.ending === "number") {
+      var fa = foeAt0(kind, depth); fa.shield = Math.round(fa.shield * K.ARC_SHIELD[state.arc.ending]); return fa;
+    }
+    return foeAt0(kind, depth);
+  }
+  function foeAt0(kind, depth) {
     var b = FOES[kind], d = kind === 5 ? 0 : depth - 1, extra = Math.floor(d / 2);
     var grow = kind === 4 ? byGalaxy(K.GATE_GROWTH_BY_GALAXY, depth) : K.DEPTH_HULL, mult = kind <= 3 ? byGalaxy(K.BEAM_BY_GALAXY, depth) : 1;
     return { n: b.n, about: b.about, engines: kind < 2, hull: Math.round(b.hull * (1 + grow * d)), shield: Math.round((b.shield || 0) * (1 + grow * d)), regen: (b.regen || 0) + extra, torps: b.torps ? b.torps + extra : 0,
@@ -892,7 +913,8 @@ button.act small.nohelp { opacity: .6; }
   }
 
   function newGame() {
-    var g = makeGalaxy(1), grid = g.grid, home = g.home;
+    var g = makeGalaxy(1), grid = g.grid, home = g.home, arc = newArc();
+    placeSignal(grid, home);
     return {
       v: 6, depth: 1, foundTotal: 0, up: {}, yard: false, codes: false, arrived: 1, alertLevel: 0, lastDay: 1, hunter: null,
       killsBy: [0, 0, 0, 0, 0, 0], chartedTotal: 0, encDone: 0, won: false, wonDay: 0, endless: false,
@@ -900,7 +922,7 @@ button.act small.nohelp { opacity: .6; }
       crew: newCrew(), relics: [], trait: null, patrols: [], raiders: makeRaiders(grid), job: null,
       jobsDone: 0, boarded: 0, elitesBeaten: 0, patrolsBeaten: 0, awayDone: 0, lostOfficer: false, started: Date.now(),
       grid: grid, pos: home, sel: null, energy: K.START_ENERGY, maxEnergy: K.START_ENERGY, hull: K.HULL, day: 1,
-      found: 0, mats: 0, scanDown: 0, torps: K.TORP_MAX, kills: 0, prev: home, fight: null, enc: null, seen: [], over: null,
+      found: 0, mats: 0, scanDown: 0, torps: K.TORP_MAX, kills: 0, prev: home, fight: null, enc: null, seen: [], over: null, arc: arc,
       log: [{ d: 1, s: "New to the Explorer? Tap How to play at the bottom of the screen for the rules." },
         { d: 1, s: "Explorer cleared for departure from the starbase at " + name(home) + ". The chart is blank. Go and fill it in." }]
     };
@@ -943,6 +965,8 @@ button.act small.nohelp { opacity: .6; }
         : gateKind(state.depth) === 5 ? "The last gate, held by the Dominion flagship. Destroy the flagship to win the voyage."
         : "The way to the next galaxy, held by a Kethari gatekeeper. Destroy it, or slip past with gate codes. The outpost in this galaxy carries them."];
       case "anomaly": return ["Anomaly", c.charges > 0 ? "Unexplained readings. Something will happen here." : "Investigated and logged."];
+      case "signal": return ["Story signal", c.charges > 0 && state.arc ? arcById(state.arc.id).title + ", part " + Math.min(state.depth, 5) + " of 5. " + arcById(state.arc.id).about +
+        " Play it before you " + (state.depth >= K.GALAXIES ? "face the flagship" : "leave this galaxy") + ", or the story suffers." : "The story has moved on from here."];
       default: return ["Open space", "Nothing on sensors."];
     }
   }
@@ -972,6 +996,9 @@ button.act small.nohelp { opacity: .6; }
       c.charges = 0;
       note(at + ". The readings here are unlike anything in the database.");
       startEncounter();
+    } else if (c.t === "signal" && c.charges > 0) {
+      c.charges = 0;
+      startStory(at);
     } else if (c.t === "ionstorm") {
       var drain = Math.min(state.energy, between(K.ION_MIN, K.ION_MAX)); state.energy -= drain; state.scanDown = state.day + K.ION_DAYS; sfx("bad", .5);
       note(at + ", inside an ion storm. Lost " + drain + " energy, and the scanner is offline until day " + state.scanDown + ".");
@@ -1793,7 +1820,7 @@ button.act small.nohelp { opacity: .6; }
   /* A rough worth of an outcome, used only to rank a choice's outcomes from worst to best. */
   function fxValue(fx) {
     if (!fx) return 0;
-    return (fx.e || 0) / 10 + (fx.me || 0) / 3 + (fx.h || 0) * 1.5 + (fx.m || 0) + (fx.t || 0) * 6 + (fx.f || 0) * 15 + (fx.chart || 0) * 3 + (fx.ket ? 25 : 0) -
+    return (fx.e || 0) / 10 + (fx.me || 0) / 3 + (fx.h || 0) * 1.5 + (fx.m || 0) + (fx.t || 0) * 6 + (fx.f || 0) * 15 + (fx.chart || 0) * 3 + (fx.ket ? 25 : 0) + (fx.arc || 0) * 25 -
       (fx.d || 0) * 6 - (fx.sd || 0) * 6 - (fx.fight !== undefined ? 30 : 0) - (fx.jump ? 5 : 0);
   }
   /* Outcome weights with the officer's help: take OFF_SHIFT of the total a level from the worst outcomes, give it to the best. */
@@ -1939,8 +1966,70 @@ button.act small.nohelp { opacity: .6; }
       '<button type="button" class="act" data-l="go"' + (L.pick.length === need ? "" : " disabled") + ">Land<small>" + K.AWAY_COST + " energy, 1 day</small></button></div>";
   }
 
-  function encById(id) { var all = ENCOUNTERS.concat(MISSIONS); for (var i = 0; i < all.length; i++) if (all[i].id === id) return all[i]; return ENCOUNTERS[0]; }
+  function encById(id) { var all = ENCOUNTERS.concat(MISSIONS, ARC_ENC); for (var i = 0; i < all.length; i++) if (all[i].id === id) return all[i]; return ENCOUNTERS[0]; }
   /* where: "space" (open space and anomalies), "nebula" or "asteroids". Each place has its own pool, which refills once all of it has been seen. */
+  /* ---------- Story arcs ----------
+     One arc a voyage (data/arcs.js): a chapter at a story signal in each galaxy, a version chosen by how the story is going,
+     and an ending that changes the flagship battle. state.arc = { id, score, ch: points per chapter (or "missed"), ids: chapters played, ending }. */
+  var ARCS = STARSHIP.ARCS, ARC_ENC = [];
+  ARCS.forEach(function (a) { a.chapters.forEach(function (c, i) { (c.id ? [c] : [c.g, c.b]).forEach(function (e) { e.arcId = a.id; e.part = i + 1; ARC_ENC.push(e); }); }); });
+  var ARC_WORDS = ["A setback for the story", "No headway in the story", "The story moves on", "A strong lead in the story"];
+  function arcById(id) { for (var i = 0; i < ARCS.length; i++) if (ARCS[i].id === id) return ARCS[i]; return ARCS[0]; }
+  function newArc() { return { id: ARCS[rnd(ARCS.length)].id, score: 0, ch: [], ids: [], ending: null }; }
+  function arcParts() { return arcById(state.arc.id).chapters.length; }
+  /* The chapter for a part: version g if the story points are at least the number of chapters before it, otherwise b. */
+  function arcChapter(part) {
+    var c = arcById(state.arc.id).chapters[part - 1]; if (!c) return null;
+    return c.id ? c : state.arc.score >= part - 1 ? c.g : c.b;
+  }
+  function arcOpen(part) { return !!state.arc && part <= arcParts() && state.arc.ch[part - 1] === undefined; }
+  function placeSignal(grid, home) {
+    var open = []; grid.forEach(function (c, i) { if (c.t === "empty" && dist(i, home) >= 2) open.push(i); });
+    if (open.length) grid[open[rnd(open.length)]] = { t: "signal", known: true, visited: false, charges: 1 };
+  }
+  function arcMiss(part) {
+    if (!arcOpen(part)) return;
+    state.arc.ch[part - 1] = "missed"; state.arc.score -= K.ARC_MISS;
+    note(arcById(state.arc.id).cold);
+  }
+  function arcTier() { var t = 0; K.ARC_TIERS.forEach(function (x) { if (state.arc.score >= x) t++; }); return t; }
+  function startStory(at) {
+    var part = state.depth, ch = arcOpen(part) ? arcChapter(part) : null;
+    if (!ch) { note(at + ". The story signal is silent."); return; }
+    note(at + ". A story signal: " + arcById(state.arc.id).title + ", part " + part + " of " + arcParts() + ".");
+    state.enc = { id: ch.id, stage: 0 }; sfx("enc", .4);
+  }
+  /* Facing the flagship: any chapters not played are missed, and the ending is set and shown before the battle. */
+  function arcEnding(gateCell) {
+    for (var p = 1; p <= arcParts(); p++) arcMiss(p);
+    var a = arcById(state.arc.id), t = arcTier(), e = a.endings[t];
+    state.arc.ending = t;
+    gateCell.ghp = Math.round(gateCell.ghp * K.ARC_HULL[t]);
+    var fx = [], hp = Math.round((K.ARC_HULL[t] - 1) * 100), sh = Math.round((K.ARC_SHIELD[t] - 1) * 100);
+    if (hp) fx.push(["Flagship hull " + (hp > 0 ? "+" : "−") + Math.abs(hp) + "%", hp > 0 ? "down" : "up"]);
+    if (sh) fx.push(["Flagship shields " + (sh > 0 ? "+" : "−") + Math.abs(sh) + "%", sh > 0 ? "down" : "up"]);
+    if (!fx.length) fx.push(["No change to the flagship", ""]);
+    var last = state.arc.ids[state.arc.ids.length - 1];
+    state.enc = { ending: true, stage: 1, id: last || a.chapters[0].id, title: e.title, text: e.text, fx: fx, fight: null };
+    note("Story: " + a.title + ". The ending: " + e.title + ".");
+    sfx(t >= 2 ? "gain" : "bad");
+  }
+  function storyHtml() {
+    if (!state.arc) return "";
+    var a = arcById(state.arc.id), played = 0, h = '<span class="label">Story</span><h2>' + a.title + '</h2><p class="lead">' + a.about + "</p><ul class=\"story\">";
+    a.chapters.forEach(function (c, i) {
+      var r = state.arc.ch[i], id = state.arc.ids.filter(function (x) { return encById(x).part === i + 1; })[0];
+      if (r === undefined) return;
+      played++;
+      h += "<li>Part " + (i + 1) + ": " + (r === "missed" ? "missed" : !id ? "before this voyage's story began" : encById(id).title + ". " + ARC_WORDS[r + 1] + ".") + "</li>";
+    });
+    if (!played) h += "<li>Not started. Find the story signal on the chart.</li>";
+    h += "</ul>";
+    if (typeof state.arc.ending === "number") h += "<p>The ending: <b>" + a.endings[state.arc.ending].title + "</b>.</p>";
+    else if (played) h += "<p>" + (state.arc.score >= played ? "The story is going well." : "The story is going badly.") + "</p>";
+    return h;
+  }
+
   /* ---------- Encounters and their effects ---------- */
   function startEncounter(where) {
     where = where || "space";
@@ -1994,7 +2083,7 @@ button.act small.nohelp { opacity: .6; }
     if (c) { state.energy -= c.e || 0; state.mats -= c.m || 0; state.torps -= c.t || 0; }
     var off = x.away ? partyHelper(x.party, ch.skill) : helperFor(ch.skill), w = null, lead = off;
     if (x.away && !lead) { var pm = x.party.map(officer).filter(function (o) { return o && o.st === "fit"; }); lead = pm.length ? pm[rnd(pm.length)] : null; }
-    if (!x.away && Math.random() < K.NOTHING_CHANCE) text = en.none;
+    if (!x.away && !en.part && Math.random() < K.NOTHING_CHANCE) text = en.none;
     else {
       w = weightsFor(ch, off);
       for (k = 0; k < w.length; k++) total += w[k];
@@ -2003,6 +2092,10 @@ button.act small.nohelp { opacity: .6; }
       text = ch.outcomes[k].text; fx = ch.outcomes[k].fx;
     }
     var changes = applyFx(fx);
+    if (en.part && state.arc) {
+      var pts = fx.arc || 0; state.arc.score += pts; state.arc.ch[en.part - 1] = pts; state.arc.ids.push(en.id);
+      changes.push([ARC_WORDS[pts + 1], pts > 0 ? "up" : pts < 0 ? "down" : ""]);
+    }
     if (lead && w) changes = changes.concat(officerAfter(lead, ch, k, lead !== off));
     if (x.away && w) { var vals = ch.outcomes.map(function (o) { return fxValue(o.fx); }); if (vals[k] === Math.max.apply(null, vals) && Math.random() < K.RELIC_MISSION) { var mr = giveRelic(); if (mr) changes.push([mr, "up"]); } }
     sfx(changes.some(function (z) { return z[1] === "down"; }) ? "bad" : changes.length ? "gain" : "tap");
@@ -2013,6 +2106,7 @@ button.act small.nohelp { opacity: .6; }
 
   function endEncounter() {
     var x = state.enc; if (!x || x.stage !== 1) return;
+    if (x.ending) { state.enc = null; engage(); return; }
     state.enc = null; state.encDone++;
     if (x.away) state.awayDone = (state.awayDone || 0) + 1;
     if (state.hull <= 0) { checkOver(); return; }
@@ -2022,7 +2116,11 @@ button.act small.nohelp { opacity: .6; }
   }
 
   function encHtml() {
-    var x = state.enc, en = encById(x.id), h = sceneSvg(PAINTED[en.id] ? en.id : en.art || (en.kind !== undefined ? "land" + en.kind : ART[en.id] ? en.id : "tspace"), en.title) + '<span class="label">' + (x.away ? "Away mission, " + (x.party || []).map(function (r) { var o = officer(r); return o ? esc(short(o)) : ""; }).join(" and ") : "Encounter") + "</span><h2>" + en.title + "</h2>";
+    var x = state.enc, en = encById(x.id);
+    if (x.ending) return sceneSvg(PAINTED[en.id] ? en.id : "tspace", x.title) + '<span class="label">Story: ' + arcById(state.arc.id).title + ", the ending</span><h2>" + x.title + "</h2><p>" + x.text + "</p>" +
+      '<ul class="fx">' + x.fx.map(function (z) { return '<li class="' + z[1] + '">' + z[0] + "</li>"; }).join("") + "</ul>" +
+      '<div class="actions"><button type="button" class="act" data-e="done">Battle stations</button></div>';
+    var h = sceneSvg(PAINTED[en.id] ? en.id : en.art || (en.kind !== undefined ? "land" + en.kind : ART[en.id] ? en.id : "tspace"), en.title) + '<span class="label">' + (x.away ? "Away mission, " + (x.party || []).map(function (r) { var o = officer(r); return o ? esc(short(o)) : ""; }).join(" and ") : en.part ? "Story: " + arcById(en.arcId).title + ", part " + en.part + " of " + arcById(en.arcId).chapters.length : "Encounter") + "</span><h2>" + en.title + "</h2>";
     if (x.stage === 0) {
       h += en.text.map(function (p) { return "<p>" + p + "</p>"; }).join("") + '<div class="choices">';
       en.choices.forEach(function (c, i) {
@@ -2102,12 +2200,14 @@ button.act small.nohelp { opacity: .6; }
     if (!gateArmed) { gateArmed = true; return; }
     gateArmed = false;
     if (gc.guard) state.slipped = true;
+    if (state.arc) arcMiss(state.depth);
     state.chartedTotal += state.grid.filter(function (c) { return c.known; }).length;
     state.energy -= K.GATE_COST; state.day++; state.depth++; sfx("gate");
     state.codes = false; state.arrived = state.day; state.lastDay = state.day; state.alertLevel = 0; state.hunter = null;
     var choices = TRAITS.filter(function (t) { return t.id !== state.trait; });
     state.trait = choices[rnd(choices.length)].id;
     var g = makeGalaxy(state.depth, state.trait), tr = traitById(state.trait);
+    if (state.arc && arcOpen(state.depth)) placeSignal(g.grid, g.home);
     state.grid = g.grid; state.pos = g.home; state.prev = g.home; state.sel = null;
     var lapsed = state.job ? " The job from the last galaxy lapses." : ""; state.job = null;
     state.patrols = state.trait === "patrols" ? makePatrols(g.home) : [];
@@ -2119,6 +2219,7 @@ button.act small.nohelp { opacity: .6; }
 
   function engage() {
     var c = here(); if (state.over || c.t !== "gate" || !c.guard) return;
+    if (gateKind(state.depth) === 5 && state.arc && state.arc.ending === null) { arcEnding(c); return; }
     note("The Explorer turned to face the " + foeNow(gateKind(state.depth)).n + " at the gate.");
     startFight({ kind: gateKind(state.depth), hp: c.ghp });
     state.fight.gate = true;
@@ -2265,7 +2366,7 @@ button.act small.nohelp { opacity: .6; }
       '<div class="actions">' + (won ? btn("endless", "Carry on into the unknown", "Keep the ship and play on for score") : "") + btn("restart", "Start a new voyage", "", { second: won }) + "</div>";
   }
   function recHtml() {
-    return '<span class="label">Voyage record</span><h2>This voyage so far</h2>' + scoreHtml() + '<span class="label">Best voyages</span>' + bestHtml() +
+    return '<span class="label">Voyage record</span><h2>This voyage so far</h2>' + scoreHtml() + storyHtml() + '<span class="label">Best voyages</span>' + bestHtml() +
       achHtml() + '<details class="tg"><summary>Captain\'s log of past voyages</summary>' + bookHtml() + "</details>" +
       '<div class="actions">' + btn("recclose", "Back to the game") + "</div>";
   }
@@ -2323,6 +2424,10 @@ button.act small.nohelp { opacity: .6; }
       "From galaxy " + K.ELITE_FROM + ", some Kethari are <b>elite</b> (amber outline): tougher, with more loot and a good chance of a relic.",
       "From alert " + raidFrom() + " in this galaxy (later in the first galaxies), Kethari <b>raiders</b> (a red pennant on the chart) move one sector a day toward the nearest starbase and attack it. Each day under attack permanently lowers how much energy the starbase can give you; at zero it is destroyed, except the last one in a galaxy. Beat the raider at the starbase and its crew will reward you.",
       "Jumping to the next galaxy resets the alert and loses the hunter. Each galaxy after the first has a <b>trait</b>, shown under the alert, that changes what you will find." ]);
+    h += sec("The story", [
+      "Each voyage follows one story in five chapters, one in each galaxy. Find the <b>story signal</b> (a gold star, charted from the start) and play its chapter before you leave the galaxy. A missed chapter sets the story back.",
+      "How each chapter goes decides the next one. The story's end changes the battle with the Dominion flagship: from a forewarned flagship with extra armour, to allies who strike it before you arrive.",
+      "<b>Record</b> shows the story so far." ]);
     h += sec("Growing the ship", [
       "The <b>shipyard</b> at a starbase sells upgrades in three levels (materials for hardware, discoveries for research) and new laser and torpedo types.",
       "<b>Relics</b> are rare, permanent finds: from the best mission results, derelicts, boarded ships, beaten elites and some jobs. Each does one thing for the rest of the voyage.",
@@ -2562,6 +2667,11 @@ button.act small.nohelp { opacity: .6; }
     if (!s.raiders) s.raiders = makeRaiders(s.grid);
     if (s.job === undefined) s.job = null;                               /* starbase jobs (build 14) */
     if (s.lostOfficer === undefined) s.lostOfficer = s.crew.some(function (o) { return o.st === "lost"; });
+    if (!s.arc) {                                                        /* story arcs (build 24): earlier galaxies count as average chapters */
+      s.arc = newArc();
+      for (var p = 1; p < s.depth && p <= 5; p++) { s.arc.ch[p - 1] = 1; s.arc.score += 1; }
+      if (s.depth <= 5) placeSignal(s.grid, s.pos);
+    }
   }
   function start() {
     loadTuneLocal(); applyTuning();
