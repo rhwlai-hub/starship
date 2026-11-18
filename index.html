@@ -33,6 +33,9 @@
   --body: "IBM Plex Sans", -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 html, body { background: var(--space); }
+/* Taps act at once: no wait for a possible double-tap zoom. Pinch zoom still works. */
+html, button, summary, label, input { touch-action: manipulation; }
+button, summary { -webkit-tap-highlight-color: transparent; }
 body {
   color: var(--text);
   font-family: var(--body);
