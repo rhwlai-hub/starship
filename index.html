@@ -249,6 +249,14 @@ svg.bv { display: block; width: 100%; height: auto; margin: 0 0 8px; }
 .chips { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
 .chip { font-family: var(--display); font-size: 11px; letter-spacing: 0; padding: 1px 5px; white-space: nowrap; border-radius: 999px; border: 1px solid var(--hull); color: var(--hull); }
 .chip.green-o { border-style: dashed; }
+img.pt { display: block; flex: none; object-fit: cover; background: var(--panel-hi); border: 1px solid var(--line); }
+img.pt-l { width: 72px; height: 90px; border-radius: 8px; }
+img.pt-s { width: 36px; height: 45px; border-radius: 6px; }
+.crew li.hasp { display: flex; gap: 12px; align-items: flex-start; }
+.pbody { flex: 1; min-width: 0; }
+button.act.pick { display: flex; align-items: center; gap: 10px; text-align: left; }
+.hasp { display: flex; gap: 10px; align-items: center; }
+.intent.hasp { align-items: flex-start; }
 @media (max-width: 420px) { .crewbar > .label { display: none; } .crewbar .chips { justify-content: center; width: 100%; } }
 .chip.injured { border-color: var(--energy); color: var(--energy); }
 .chip.lost { border-color: var(--line); color: var(--muted); text-decoration: line-through; }
@@ -3133,7 +3141,7 @@ button.act small.nohelp { opacity: .6; }
     } else { text = e.alt.text; fx = e.alt.fx; chips = applyEvFx(f, fx); }
     sfx(chips.some(function (z) { return z[1] === "down"; }) ? "bad" : chips.length ? "gain" : "tap");
     note(e.title + ". " + (choice === 0 ? e.off.label : e.alt.label) + ". " + (chips.length ? chips.map(function (z) { return z[0]; }).join(", ") : "No effect") + ".");
-    f.event = null; f.evNote = { title: e.title, text: text, fx: chips };
+    f.event = null; f.evNote = { title: e.title, text: text, fx: chips, who: choice === 0 && fit ? e.role : null };
     if (state.hull <= 0) { state.fight = null; checkOver(); }
   }
   function eventHtml(f) {
@@ -3266,8 +3274,8 @@ button.act small.nohelp { opacity: .6; }
       battleSvg(f) + '<p>Beams ' + dice(foe.beam[0]) + " close, " + dice(foe.beam[1]) + " medium, " + dice(foe.beam[2]) + " long." + (foe.torps ? " Torpedoes " + dice(TORP) + ", " + f.torps + " left." : "") +
       (f.w < 100 && f.w > 0 ? " With weapons at " + f.w + "% it rolls fewer beam dice." : "") + "</p>" +
       (f.ter !== "open" ? "<p><b>" + TERRAIN[f.ter][0] + ".</b> " + (f.ter === "star" ? "The Explorer gains " + K.STAR_CHARGE + " energy every turn." : TERRAIN[f.ter][1]) + "</p>" : "") +
-      (f.event && f.event.stage === 0 ? "" : (f.evNote ? '<div class="intent event"><span class="label">' + f.evNote.title + "</span>" + f.evNote.text +
-        (f.evNote.fx.length ? '<ul class="fx">' + f.evNote.fx.map(function (z) { return '<li class="' + z[1] + '">' + z[0] + "</li>"; }).join("") + "</ul>" : "") + "</div>" : "")) +
+      (f.event && f.event.stage === 0 ? "" : (f.evNote ? '<div class="intent event' + (f.evNote.who ? " hasp" : "") + '">' + (f.evNote.who ? picImg(officer(f.evNote.who), "pt-s") : "") + '<div class="pbody"><span class="label">' + f.evNote.title + "</span>" + f.evNote.text +
+        (f.evNote.fx.length ? '<ul class="fx">' + f.evNote.fx.map(function (z) { return '<li class="' + z[1] + '">' + z[0] + "</li>"; }).join("") + "</ul>" : "") + "</div></div>" : "")) +
       (f.elite === "ace" && f.turn === 1 ? '<p class="outnote">Ace: its first volley ignores your shields. Shield points do nothing this turn.</p>' : "") +
       '<div class="intent"><span class="label">Its move this turn</span>' + (f.held ? "Holding its fire while it checks your bluff." + (f.intent === "closer" ? " It is still closing in." : f.intent === "away" ? " It is still pulling back." : "") : f.silenced && f.intent !== "flee" ? "Its weapons were knocked out last turn. It cannot fire this turn." + (f.intent === "closer" ? " It is closing in." : f.intent === "away" ? " It is pulling back." : "") : INTENT[f.intent]) +
       (mendText ? " Afterwards it repairs " + mendText + "." : "") + "</div>" +
@@ -3541,11 +3549,67 @@ button.act small.nohelp { opacity: .6; }
   var crewOpen = false, crewEdit = null;
   var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
   function roleById(id) { for (var i = 0; i < ROLES.length; i++) if (ROLES[i].id === id) return ROLES[i]; return ROLES[0]; }
+  /* Crew portraits: six for each role, mostly human, with three original species (Ossari, Thren, Vauk).
+     Each officer is given a portrait not already in use, and a name from that portrait's own list. */
+  var PORTRAITS = [
+    { id: "p01", role: "sci", sp: "human", names: ["Mei Takahara", "Yuna Seo", "Lin Hao"] },
+    { id: "p02", role: "sci", sp: "human", names: ["Kwame Asante", "Tunde Okafor", "Kofi Mensah"] },
+    { id: "p03", role: "sci", sp: "human", names: ["Ingrid Solberg", "Astrid Lindqvist", "Sigrid Haug"] },
+    { id: "p04", role: "sci", sp: "human", names: ["Arjun Mehta", "Rohan Iyer", "Dev Kapoor"] },
+    { id: "p05", role: "sci", sp: "human", names: ["Ari Navarro", "Sol Ferreira", "Cris Ruiz"] },
+    { id: "p06", role: "sci", sp: "ossari", names: ["Isso Venh", "Teru Ashvel", "Ollo Saav"] },
+    { id: "p07", role: "cmd", sp: "human", names: ["Amara Whitlock", "Nia Adeyemi", "Grace Okonjo"] },
+    { id: "p08", role: "cmd", sp: "human", names: ["Sione Tuilagi", "Mana Kealoha", "Tama Faleolo"] },
+    { id: "p09", role: "cmd", sp: "human", names: ["Leila Haddad", "Yasmin Darwish", "Rana Khoury"] },
+    { id: "p10", role: "cmd", sp: "human", names: ["Pavel Zelenko", "Tomas Kowal", "Mirek Varga"] },
+    { id: "p11", role: "cmd", sp: "human", names: ["Ruby Walker", "Jessie Morgan", "Kirra Thompson"] },
+    { id: "p12", role: "cmd", sp: "thren", names: ["Kaelor Venn", "Ithra Sallow", "Oruun Kade"] },
+    { id: "p13", role: "sec", sp: "human", names: ["Kenji Iwata", "Daisuke Tanaka", "Ren Mori"] },
+    { id: "p14", role: "sec", sp: "human", names: ["Aroha Ngata", "Hine Parata", "Mere Tane"] },
+    { id: "p15", role: "sec", sp: "human", names: ["Liam Brannock", "Conor Halloran", "Sean Devane"] },
+    { id: "p16", role: "sec", sp: "human", names: ["Lucia Castellan", "Marisol Vega", "Ines Ortega"] },
+    { id: "p17", role: "sec", sp: "human", names: ["Youssef Amrani", "Karim Benali", "Idris Haddou"] },
+    { id: "p18", role: "sec", sp: "vauk", names: ["Brann Hollo", "Mok Tessaly", "Grum Awen"] },
+    { id: "p19", role: "med", sp: "human", names: ["Hana Park", "Ji-woo Kim", "Soo-ah Lee"] },
+    { id: "p20", role: "med", sp: "human", names: ["Emeka Okafor", "Chidi Eze", "Tobi Adeyemi"] },
+    { id: "p21", role: "med", sp: "human", names: ["Camila Moreau", "Beatriz Lachance", "Rafaela Souza"] },
+    { id: "p22", role: "med", sp: "human", names: ["Vikram Rao", "Anand Krishnan", "Suresh Pillai"] },
+    { id: "p23", role: "med", sp: "human", names: ["Eleni Petrakis", "Sofia Andreou", "Daphne Kostas"] },
+    { id: "p24", role: "med", sp: "ossari", names: ["Vessa Orin", "Thal Ivren", "Ume Saskar"] },
+    { id: "p25", role: "eng", sp: "human", names: ["Mateo Navarro", "Diego Ramos", "Rafael Cruz"] },
+    { id: "p26", role: "eng", sp: "human", names: ["Lian Wu", "Xia Chen", "Jing Zhou"] },
+    { id: "p27", role: "eng", sp: "human", names: ["Angus Marr", "Callum Ostrander", "Fergus Quell"] },
+    { id: "p28", role: "eng", sp: "human", names: ["Selam Bekele", "Hanna Tesfaye", "Meron Alemu"] },
+    { id: "p29", role: "eng", sp: "vauk", names: ["Tavvo Rusk", "Pell Haddin", "Orm Kessick"] },
+    { id: "p30", role: "eng", sp: "thren", names: ["Sarrik Vane", "Elowe Tarn", "Quill Arath"] }
+  ];
+  function portraitById(id) { for (var i = 0; i < PORTRAITS.length; i++) if (PORTRAITS[i].id === id) return PORTRAITS[i]; return null; }
+  function freePortraits(role, crew, except) {
+    var used = (crew || []).filter(function (o) { return o !== except; }).map(function (o) { return o.pic; });
+    return PORTRAITS.filter(function (p) { return p.role === role && used.indexOf(p.id) < 0; });
+  }
   function newOfficer(role, crew) {
-    var taken = (crew || []).map(function (o) { return o.nm.split(" ").pop(); }), fam;
-    do { fam = FAMILY[rnd(FAMILY.length)]; } while (taken.indexOf(fam) >= 0 && taken.length < FAMILY.length);
+    var taken = (crew || []).map(function (o) { return o.nm.split(" ").pop(); });
+    var pool = freePortraits(role, crew), p = pool.length ? pool[rnd(pool.length)] : null;
+    if (p) {
+      var names = p.names.filter(function (n) { return taken.indexOf(n.split(" ").pop()) < 0; });
+      if (!names.length) names = p.names;
+      return { role: role, nm: names[rnd(names.length)], pic: p.id, lvl: 1, xp: 0, st: "fit", until: 0, hurt: 0 };
+    }
+    var fam; do { fam = FAMILY[rnd(FAMILY.length)]; } while (taken.indexOf(fam) >= 0 && taken.length < FAMILY.length);
     return { role: role, nm: GIVEN[rnd(GIVEN.length)] + " " + fam, lvl: 1, xp: 0, st: "fit", until: 0, hurt: 0 };
   }
+  /* Officers from before portraits get one for their role (their name is kept). */
+  function givePortraits() {
+    (state.crew || []).forEach(function (o) { if (!o.pic) { var pool = freePortraits(o.role, state.crew, o); if (pool.length) o.pic = pool[rnd(pool.length)].id; } });
+  }
+  function nextPortrait(o) {
+    var pool = freePortraits(o.role, state.crew, o);
+    pool.sort(function (a, b) { return a.id < b.id ? -1 : 1; });
+    var i = pool.map(function (p) { return p.id; }).indexOf(o.pic);
+    o.pic = pool[(i + 1) % pool.length].id;
+  }
+  function picImg(o, cls) { return o && o.pic ? '<img class="pt ' + (cls || "") + '" src="portraits/' + o.pic + '.jpg" alt="" loading="lazy" onerror="this.remove()">' : ""; }
   function newCrew() { var c = []; ROLES.forEach(function (r) { c.push(newOfficer(r.id, c)); }); return c; }
   function officer(roleId) { var c = state.crew || []; for (var i = 0; i < c.length; i++) if (c[i].role === roleId) return c[i]; return null; }
   /* Green recruits (level 0) give half the help of level 1, and become level 1 the first time they are used. */
@@ -3636,7 +3700,7 @@ button.act small.nohelp { opacity: .6; }
     s.crew.forEach(function (o) {
       var r = roleById(o.role), st = o.st === "fit" ? "Fit" : o.st === "injured" ? "Injured, back day " + o.until : "Lost on day " + o.until;
       var next = o.lvl === 1 ? K.OFF_XP2 : o.lvl === 2 ? K.OFF_XP3 : 0, left = Math.max(0, next - o.xp);
-      h += '<li><div class="top2"><span class="who">' + esc(short(o)) + '</span><span class="st ' + o.st + '">' + st + "</span></div>" +
+      h += '<li class="hasp">' + picImg(o, "pt-l") + '<div class="pbody"><div class="top2"><span class="who">' + esc(short(o)) + '</span><span class="st ' + o.st + '">' + st + "</span></div>" +
         "<small>" + esc(o.nm) + ". " + r.n + ", helps with " + r.skills + " choices.</small>" +
         (o.st === "lost" ? "" : o.lvl === 0 ? "<small><b>Green.</b> Gives half the help of a level 1 officer. Becomes level 1 the first time they are used.</small>" : '<small>Level <span class="lv">' + "\u25CF\u25CF\u25CF".slice(0, o.lvl) + "\u25CB\u25CB\u25CB".slice(o.lvl) + "</span> " + (next ? left + " more success" + (left === 1 ? "" : "es") + " to level " + (o.lvl + 1) : "Highest level") + "</small>");
       if (crewEdit === o.role) {
@@ -3644,8 +3708,8 @@ button.act small.nohelp { opacity: .6; }
       } else if (o.st === "lost") {
         h += '<div class="row2">' + (atBase ? '<button type="button" class="go" data-c="recruit" data-v="' + o.role + '"' + (s.mats < K.RECRUIT_COST ? " disabled" : "") + ">Recruit a new " + roleWord(o.role) + ", " + K.RECRUIT_COST + " materials, 1 day</button>"
           : "<small>Recruit a replacement at a starbase for " + K.RECRUIT_COST + " materials.</small>") + "</div>";
-      } else h += '<div class="row2"><button type="button" data-c="rename" data-v="' + o.role + '">Rename</button></div>';
-      h += "</li>";
+      } else h += '<div class="row2"><button type="button" data-c="rename" data-v="' + o.role + '">Rename</button>' + (o.pic ? '<button type="button" data-c="pic" data-v="' + o.role + '">Change portrait</button>' : "") + "</div>";
+      h += "</div></li>";
     });
     h += '</ul><span class="label" style="display:block;margin-top:16px">Relics</span><ul class="relics">' +
       ((s.relics || []).length ? s.relics.map(function (id) { var r = relicById(id); return "<li><b>" + r.n + "</b><small>" + r.about + "</small></li>"; }).join("")
@@ -3693,8 +3757,8 @@ button.act small.nohelp { opacity: .6; }
     state.crew.forEach(function (o) {
       var r = roleById(o.role), on = L.pick.indexOf(o.role) >= 0, fit = o.st === "fit";
       var sub = !fit ? (o.st === "injured" ? "Injured, back day " + o.until : "Lost") : r.n + ", " + lvlText(o) + (fav.indexOf(o.role) >= 0 ? ". Most use on this world" : "");
-      h += '<button type="button" class="act' + (on ? "" : " second") + '" data-l="tog" data-v="' + o.role + '"' + (!fit || (!on && L.pick.length >= 2) ? " disabled" : "") + ' aria-pressed="' + on + '">' +
-        (on ? "\u2713 " : "") + esc(short(o)) + "<small>" + sub + "</small></button>";
+      h += '<button type="button" class="act pick' + (on ? "" : " second") + '" data-l="tog" data-v="' + o.role + '"' + (!fit || (!on && L.pick.length >= 2) ? " disabled" : "") + ' aria-pressed="' + on + '">' +
+        picImg(o, "pt-s") + '<span class="pbody">' + (on ? "\u2713 " : "") + esc(short(o)) + "<small>" + sub + "</small></span></button>";
     });
     return h + '</div><div class="actions gap"><button type="button" class="act second" data-l="cancel">Stay aboard</button>' +
       '<button type="button" class="act" data-l="go"' + (L.pick.length === need ? "" : " disabled") + ">Land<small>" + K.AWAY_COST + " energy, 1 day</small></button></div>";
@@ -3767,7 +3831,7 @@ button.act small.nohelp { opacity: .6; }
     if (x.away && w) { var vals = ch.outcomes.map(function (o) { return fxValue(o.fx); }); if (vals[k] === Math.max.apply(null, vals) && Math.random() < K.RELIC_MISSION) { var mr = giveRelic(); if (mr) changes.push([mr, "up"]); } }
     sfx(changes.some(function (z) { return z[1] === "down"; }) ? "bad" : changes.length ? "gain" : "tap");
     if (c) changes.unshift(["Spent " + costText(c), ""]);
-    state.enc = { id: en.id, stage: 1, pick: ch.label + (lead ? ", led by " + short(lead) : ""), away: x.away, party: x.party, text: text, fx: changes, fight: fx.fight === undefined ? null : fx.fight, jump: !!fx.jump };
+    state.enc = { id: en.id, stage: 1, pick: ch.label + (lead ? ", led by " + short(lead) : ""), lead: lead ? lead.role : null, away: x.away, party: x.party, text: text, fx: changes, fight: fx.fight === undefined ? null : fx.fight, jump: !!fx.jump };
     note(en.title + ". " + ch.label + ". " + (changes.length ? changes.map(function (z) { return z[0]; }).join(", ") : "Nothing came of it") + ".");
   }
 
@@ -3796,7 +3860,7 @@ button.act small.nohelp { opacity: .6; }
       });
       return h + "</div>";
     }
-    return h + '<p class="chose">You chose: ' + x.pick + "</p><p>" + x.text + "</p>" +
+    return h + '<p class="chose' + (x.lead ? " hasp" : "") + '">' + (x.lead ? picImg(officer(x.lead), "pt-s") : "") + "<span>You chose: " + x.pick + "</span></p><p>" + x.text + "</p>" +
       (x.fx.length ? '<ul class="fx">' + x.fx.map(function (z) { return '<li class="' + z[1] + '">' + z[0] + "</li>"; }).join("") + "</ul>" : "") +
       '<div class="actions"><button type="button" class="act" data-e="done">' + (x.fight !== null && state.hull > 0 ? "Battle stations" : "Continue") + "</button></div>";
   }
@@ -4058,7 +4122,7 @@ button.act small.nohelp { opacity: .6; }
     h += sec("Officers", [
       "Five officers: science, commander, security, medical and engineering. Tap <b>Crew</b> to see them, rename them, and see your relics.",
       "A fit officer whose role matches a choice moves " + Math.round(K.OFF_SHIFT * 100) + "% of the odds a level from the worst result to the best. Commanders help with diplomacy and piloting; security with tactical choices.",
-      "Officers gain experience from good results and reach level 3. Bad results can injure them for some days, or rarely lose them. Replace a lost officer at a starbase for " + K.RECRUIT_COST + " materials. A new recruit starts <b>green</b>: half the help of level 1 until they are first used, success or failure." ]);
+      "Officers gain experience from good results and reach level 3. Bad results can injure them for some days, or rarely lose them. Replace a lost officer at a starbase for " + K.RECRUIT_COST + " materials. Each officer has a portrait; tap <b>Change portrait</b> on the crew screen to pick another. A new recruit starts <b>green</b>: half the help of level 1 until they are first used, success or failure." ]);
     h += sec("Battle: each turn", [
       "Battle starts at long range. The enemy's move for the turn is shown in the amber box <b>before</b> you choose, along with what it will repair afterwards.",
       "You have <b>" + power() + " power</b> a turn, each point costing " + K.POWER_COST + " energy. Split it between moving, shields, lasers, a torpedo and damage control. Unused power banks for next turn, up to " + K.BANK_MAX + ".",
@@ -4238,6 +4302,7 @@ button.act small.nohelp { opacity: .6; }
         if (o && v) o.nm = v;
         crewEdit = null;
       } else if (cmd === "recruit") recruit(cb.dataset.v);
+      else if (cmd === "pic") { var po = officer(cb.dataset.v); if (po) nextPortrait(po); }
       sfx("tap"); render(); return;
     }
     var eb = e.target.closest("button[data-e]");
@@ -4304,6 +4369,7 @@ button.act small.nohelp { opacity: .6; }
     if (!state.owned) { state.owned = { "L:pulse": 1, "T:proton": 1 }; state.laser = "pulse"; state.torp = "proton"; }
     if (state.hull > K.HULL) state.hull = K.HULL;
     if (state.enc === undefined) state.enc = null;
+    if (state.crew) givePortraits();
     if (!state.crew) { state.crew = newCrew(); note("Five officers have joined the Explorer. Tap Crew to meet them."); }
     if (!state.relics) state.relics = [];
     if (!state.patrols) state.patrols = [];
