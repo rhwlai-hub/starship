@@ -1,8 +1,8 @@
 /* Offline support for Starship.
    The game page is fetched fresh when online (so updates arrive) and served from the cache when offline.
    Paintings, icons and fonts are kept in the cache after the first visit. */
-var CACHE = "starship-build-20";
-var FILES = ["./", "index.html", "manifest.webmanifest", "icon-180.png", "icon-512.png", "art/distress.jpg", "art/station.jpg", "art/stowaway.jpg", "art/flare.jpg", "art/graveyard.jpg", "art/merchant.jpg", "art/defector.jpg", "art/drifters.jpg", "art/plague.jpg"];
+var CACHE = "starship-202611181932";
+var FILES = ["./", "index.html", "manifest.webmanifest", "icon-180.png", "icon-512.png", "art/distress.jpg", "art/station.jpg", "art/stowaway.jpg", "art/flare.jpg", "art/graveyard.jpg", "art/merchant.jpg", "art/defector.jpg", "art/drifters.jpg", "art/plague.jpg", "art/gravity.jpg", "art/oracle.jpg", "art/coolant.jpg", "art/cache.jpg"];
 self.addEventListener("install", function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(FILES); }).then(function () { return self.skipWaiting(); }));
 });
