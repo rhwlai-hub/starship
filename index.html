@@ -2300,7 +2300,25 @@ button.act small.nohelp { opacity: .6; }
     occupied: "art/occupied.jpg",
     firstlaunch: "art/firstlaunch.jpg",
     greatrace: "art/greatrace.jpg",
-    ambassador: "art/ambassador.jpg"
+    ambassador: "art/ambassador.jpg",
+    hab1: "art/hab1.jpg",
+    hab2: "art/hab2.jpg",
+    hab3: "art/hab3.jpg",
+    hab4: "art/hab4.jpg",
+    hab5: "art/hab5.jpg",
+    hab6: "art/hab6.jpg",
+    bar1: "art/bar1.jpg",
+    bar2: "art/bar2.jpg",
+    bar3: "art/bar3.jpg",
+    bar4: "art/bar4.jpg",
+    bar5: "art/bar5.jpg",
+    bar6: "art/bar6.jpg",
+    inh1: "art/inh1.jpg",
+    inh2: "art/inh2.jpg",
+    inh3: "art/inh3.jpg",
+    inh4: "art/inh4.jpg",
+    inh5: "art/inh5.jpg",
+    inh6: "art/inh6.jpg"
   };
   function sceneSvg(id, title) {
     if (PAINTED[id]) return '<img class="art" src="' + PAINTED[id] + '" alt="Illustration: ' + title + '" width="960" height="420">';
@@ -3749,9 +3767,14 @@ button.act small.nohelp { opacity: .6; }
       state.enc = { id: m.id, stage: 0, away: true, party: L.pick.slice() }; sfx("enc", .2);
     }
   }
+  /* Each planet shows one of six painted views for its kind, always the same one for that planet. Falls back to the drawn scene. */
+  function planetView(i, kind) {
+    var key = ["hab", "bar", "inh"][kind] + (((i * 7) + (state.depth || 1) * 3) % 6 + 1);
+    return PAINTED[key] ? key : "land" + kind;
+  }
   function landingHtml() {
     var L = state.landing, c = here(), fav = FAVOURED[c.kind], need = Math.min(2, fitCrew().length);
-    var h = sceneSvg("land" + c.kind, PLANETS[c.kind].n) + '<span class="label">Landing party, ' + name(state.pos) + "</span><h2>Who goes down?</h2><p>" +
+    var h = sceneSvg(planetView(state.pos, c.kind), PLANETS[c.kind].n) + '<span class="label">Landing party, ' + name(state.pos) + "</span><h2>Who goes down?</h2><p>" +
       (c.kind === 0 ? "A living world. Science and medical officers are most use here." : c.kind === 2 ? "A world with its own people. The commander and medical officers are most use here." : "Bare rock. Engineering and security officers are most use here.") +
       " Pick " + (need > 1 ? "two officers" : "one officer") + ". An officer helps only with choices that match their role, and the one who leads a choice carries its risk.</p><div class=\"choices\">";
     state.crew.forEach(function (o) {
