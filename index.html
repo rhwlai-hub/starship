@@ -150,6 +150,11 @@ table.score tr.total td { border-top: 2px solid var(--line); color: var(--text);
 .book { margin: 0 0 8px; padding-left: 20px; font-size: 13.5px; color: var(--muted); display: grid; gap: 8px; }
 .book b { color: var(--text); font-weight: 600; }
 .help ul { margin: 4px 0 10px; padding-left: 18px; display: grid; gap: 6px; font-size: 14px; color: var(--text); }
+.wtab { width: 100%; border-collapse: collapse; margin: 4px 0 6px; font-size: 12.5px; table-layout: fixed; }
+.wtab th, .wtab td { border: 1px solid var(--line); padding: 4px 5px; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+.wtab thead th { color: var(--muted); font-weight: 600; }
+.wtab tbody th { font-weight: 600; color: var(--text); }
+.help li:has(> table.wtab) { list-style: none; margin-left: -18px; }
 .help li b { font-family: var(--display); font-weight: 600; }
 .help p.lead { color: var(--text); }
 .yardhead { display: flex; justify-content: space-between; gap: 8px; margin-top: 14px; }
@@ -172,6 +177,21 @@ table.score tr.total td { border-top: 2px solid var(--line); color: var(--text);
 
 .foehead { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
 .foehead h2 { color: var(--danger); }
+.foename { background: none; border: 0; padding: 4px 0; margin: 0; min-height: 36px; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.foename .ico { display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; margin-left: 6px; border: 1.5px solid var(--danger); border-radius: 50%; box-sizing: border-box;
+  font: italic 600 10px/1 Georgia, "Times New Roman", serif; color: var(--danger); vertical-align: 2px; }
+.foename.on .ico { background: var(--danger); color: var(--space); }
+.foeinfo { display: none; margin: 0 0 10px; padding: 8px 10px; border: 1px solid var(--danger); border-radius: 8px; background: var(--panel-hi); font-size: 13.5px; }
+.foeinfo.on { display: block; }
+.foeinfo .label { color: var(--danger); display: block; margin-bottom: 2px; }
+.foeinfo p { margin: 0 0 4px; }
+.foeinfo p:last-child { margin: 0; color: var(--muted); }
+.foeinfo b { font-family: var(--display); font-variant-numeric: tabular-nums; }
+.meline { display: flex; flex-wrap: nowrap; align-items: baseline; gap: 10px; margin: 0 0 12px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 13px; white-space: nowrap; overflow: hidden; }
+.meline b { color: var(--text); }
+.meline span { color: var(--text); font-family: var(--display); font-variant-numeric: tabular-nums; }
+.meline i { font-style: normal; color: var(--signal); font-family: inherit; margin-right: 2px; }
+p.aimnote { margin: 2px 0 0; font-size: 12px; color: var(--muted); }
 .foehead .val { font-family: var(--display); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .bar.foebar { margin: 2px 0 10px; }
 .bar.foebar i { background: var(--danger); }
@@ -358,7 +378,7 @@ button.act small.nohelp { opacity: .6; }
   </section>
 
   <div class="foot">
-    <span>Build 25: fairer charged shots</span>
+    <span>Build 26: battle screen and boarding</span>
     <span class="footbtns"><button id="soundBtn" type="button">Sound: all</button><button id="helpBtn" type="button">How to play</button><button id="recBtn" type="button">Record</button><button id="tuneBtn" type="button">Tuning</button><button id="newGame" type="button">New game</button></span>
   </div>
 </div>
@@ -451,7 +471,7 @@ button.act small.nohelp { opacity: .6; }
   var FOES = [
     { n: "Kethari raider", hull: 28, shield: 10, regen: 4, beam: [[5, 8], [3, 6], [1, 6]], torps: 0, loot: [20, 28], about: "Fast and vicious up close, feeble at long range. It will try to close in." },
     { n: "Kethari gunship", hull: 35, shield: 14, regen: 5, beam: [[1, 8], [3, 6], [4, 8]], torps: 3, loot: [28, 40], about: "Long guns, slow engines and a few torpedoes. Its beams are deadly at long range and weak up close." },
-    { n: "Kethari carrier", hull: 45, shield: 18, regen: 6, beam: [[2, 6], [4, 8], [2, 6]], torps: 2, loot: [40, 56], about: "Its fighters hit hardest at medium range. It is exposed while it recovers them." },
+    { n: "Kethari carrier", hull: 45, shield: 18, regen: 6, beam: [[2, 6], [4, 8], [2, 6]], torps: 2, loot: [40, 56], about: "Its fighters hit hardest at medium range. It is exposed while it recovers them. It holds station: it never closes in, backs away or runs." },
     { n: "Kethari outpost", hull: 60, shield: 24, regen: 8, beam: [[4, 6], [4, 6], [2, 6]], torps: 4, loot: [56, 80], about: "A fortified listening post that carries the gate codes. Its batteries pause to reload every third turn." },
     { n: "Kethari gatekeeper", hull: 75, shield: 24, regen: 8, beam: [[4, 8], [4, 8], [3, 8]], torps: 4, loot: [60, 90], about: "The warship that holds the jump gate. Dangerous at every range, and it never leaves its post." },
     { n: "Dominion flagship", hull: 410, shield: 60, regen: 10, beam: [[6, 8], [6, 8], [5, 8]], torps: 6, loot: [150, 200], about: "The pride of the Kethari Dominion, holding the last gate. Destroying it wins the voyage." }
@@ -459,15 +479,15 @@ button.act small.nohelp { opacity: .6; }
   var FOE_KIND = { raider: 0, gunship: 1, carrier: 2, outpost: 3 };
   var INTENT = {
     fire: "Firing its beam weapons.",
-    torp: "Launching a torpedo. Its damage is the same at any range.",
-    heavy: "Firing its charged main guns: more dice than usual, at whatever range you end this turn. Changing range now can take the sting out of it.",
-    charge: "Charging its main guns. It will not fire this turn. Next turn it fires a heavy shot at whatever range you end that turn.",
-    closer: "Firing half its usual dice, then closing in. If you back away it gives chase at full fire.",
+    torp: "Launching a torpedo.",
+    heavy: "Firing its charged main guns.",
+    charge: "Charging its main guns. It will not fire this turn, but its next shot will be heavy.",
+    closer: "Firing half its usual dice, then closing in.",
     away: "Firing half its usual dice, then pulling back.",
     recover: "Recovering its fighters. It cannot attack this turn and takes extra damage.",
     reload: "Reloading its batteries. It cannot fire this turn.",
     dark: "Its weapons are offline. It cannot fire this turn.",
-    flee: "Trying to escape. It will not fire, and it will be gone at the end of this turn unless it is destroyed or its engines are knocked below 50%."
+    flee: "Trying to escape. It will not fire, and it will be gone at the end of this turn."
   };
   /* Random encounters: see data/encounters.js */
   var ENCOUNTERS = STARSHIP.ENCOUNTERS;
@@ -844,7 +864,7 @@ button.act small.nohelp { opacity: .6; }
   function foeAt0(kind, depth) {
     var b = FOES[kind], d = kind === 5 ? 0 : depth - 1, extra = Math.floor(d / 2);
     var grow = kind === 4 ? byGalaxy(K.GATE_GROWTH_BY_GALAXY, depth) : K.DEPTH_HULL, mult = kind <= 3 ? byGalaxy(K.BEAM_BY_GALAXY, depth) : 1;
-    return { n: b.n, about: b.about, engines: kind < 2, hull: Math.round(b.hull * (1 + grow * d)), shield: Math.round((b.shield || 0) * (1 + grow * d)), regen: (b.regen || 0) + extra, torps: b.torps ? b.torps + extra : 0,
+    return { n: b.n, about: b.about, engines: kind < 3, hull: Math.round(b.hull * (1 + grow * d)), shield: Math.round((b.shield || 0) * (1 + grow * d)), regen: (b.regen || 0) + extra, torps: b.torps ? b.torps + extra : 0,
       beam: b.beam.map(function (x) { return [Math.max(1, Math.round(x[0] * mult)) + extra, x[1]]; }),
       loot: [Math.round(b.loot[0] * (1 + K.DEPTH_LOOT * d)), Math.round(b.loot[1] * (1 + K.DEPTH_LOOT * d))] };
   }
@@ -897,7 +917,7 @@ button.act small.nohelp { opacity: .6; }
       for (var k = 0; k < ODDS.length; k++) { r -= weight(k); if (r < 0) { t = ODDS[k][0]; break; } }
       var c = { t: t, known: false, visited: false };
       if (FOE_KIND[t] !== undefined) { c.t = "kethari"; c.kind = FOE_KIND[t]; c.hp = foeAt(c.kind, depth).hull; c.ter = pickTer();
-        if (c.kind <= 2 && depth >= K.ELITE_FROM && Math.random() < K.ELITE_CHANCE) { var els = c.kind < 2 ? ["veteran", "hardened", "swift", "ace"] : ["veteran", "hardened", "ace"]; c.elite = els[rnd(els.length)]; } }
+        if (c.kind <= 2 && depth >= K.ELITE_FROM && Math.random() < K.ELITE_CHANCE) { var els = ["veteran", "hardened", "swift", "ace"]; c.elite = els[rnd(els.length)]; } }
       if (t === "star") { c.col = rnd(3); c.charges = STARS[c.col].charges; }
       if (t === "planet") { c.kind = rnd(3); c.charges = 1; }
       if (t === "anomaly" || t === "derelict" || t === "nebula") { c.charges = 1; }
@@ -1146,6 +1166,7 @@ button.act small.nohelp { opacity: .6; }
   function normFight(f) {
     var foe = foeNow(f.kind, f.elite);
     if (f.w === undefined) { f.w = 100; f.e = foe.engines ? 100 : null; if (f.sh === undefined) f.sh = foe.shield; f.bank = f.bank || 0; }
+    if (f.kind === 2 && f.e === null) f.e = 100; /* build 26: carriers have engines */
     if (!f.out) f.out = { la: false, to: false, en: false };
     if (!f.ter) f.ter = "open";
     if (f.repair === undefined) f.repair = pickRepair(f);
@@ -1180,7 +1201,10 @@ button.act small.nohelp { opacity: .6; }
     if (torp) return "torp";
     return Math.random() < .5 ? "fire" : "charge";
   }
+  /* Whether the enemy's weapons panel is open on the battle screen. Screen only; closed at the start of each battle. */
+  var foeInfo = false;
   function startFight(c, ambush) {
+    foeInfo = false;
     var cell = here(), foe = foeNow(c.kind, c.elite);
     var ter = cell.t === "kethari" ? (cell.ter || "open") : ({ nebula: "nebula", asteroids: "asteroids", star: "star", blackhole: "gravity" })[cell.t] || "open";
     var f = { kind: c.kind, hp: c.hp, max: c.max || Math.max(foe.hull, c.hp), name: c.name || foe.n, sh: foe.shield, w: 100, e: foe.engines ? 100 : null, torps: foe.torps, range: 2, charged: false, moved: false, silenced: false,
@@ -1289,7 +1313,7 @@ button.act small.nohelp { opacity: .6; }
 
   /* ---------- Boarding ----------
      Offered at close range against a raider, gunship, carrier or outpost that cannot move
-     (engines under 50%, or a ship with no engines). Led by the security officer; takes the whole turn. */
+     (engines under 50%; outposts have no engines). Led by the security officer; takes the whole turn. */
   function boardable(f) { return f.kind <= 3 && f.range === 0 && !canMoveFoe(f); }
   function boardChance(f) {
     var sec = officer("sec"); if (!sec || sec.st !== "fit") return 0;
@@ -1425,7 +1449,7 @@ button.act small.nohelp { opacity: .6; }
     if (toSh) bits.push(toSh + " to its shields");
     if (past) bits.push(a.tg === "h" ? past + " to its hull" : "its " + TARGETS[a.tg] + " down " + sysLoss + "% and " + hullFromLasers + " to its hull");
     var line = (f.pre || "") + "Turn " + f.turn + ", " + RANGES[fc.fr].toLowerCase() + " range." + (a.la ? " Lasers " + las + (bits.length ? ": " + bits.join(", ") : "") + "." : "") +
-      (a.torp ? (torpHull ? " Torpedo " + torp + " to its hull." : " Torpedo wasted on its shields, which lost " + torpSh + ".") : "") +
+      (a.torp ? (torpHull ? " Torpedo " + torp + " to its hull." : " Torpedo hit its shields, which lost " + torpSh + ".") : "") +
       (a.tg === "w" && past && f.w <= 0 ? " Its weapons are offline." : "") + (a.tg === "e" && past && f.e !== null && f.e < 50 ? " Its engines are out." : "") +
       " Took " + inc + (inc > loss ? ", " + (arm ? "shields and armour" : "shields") + " absorbed " + (inc - loss) : "") + ", hull lost " + loss + "." +
       (fc.bump ? " Rocks cost another " + bump + " hull on the move." : "");
@@ -1515,17 +1539,22 @@ button.act small.nohelp { opacity: .6; }
         '</output><button type="button" data-f="' + fld + '" data-v="1" aria-label="More"' + (free < 1 || off ? " disabled" : "") + ">+</button></div>";
     };
     var mendText = f.repair === "s" ? "its shields, by up to " + Math.min(foe.shield - f.sh, Math.ceil(f.hp / K.REPAIR_SHIELD_DIV)) : f.repair === "w" ? "its weapons, by " + K.REPAIR_SYS + "%" : f.repair === "e" ? "its engines, by " + K.REPAIR_SYS * (f.elite === "swift" ? 2 : 1) + "%" : "";
-    h = '<span class="label">Battle, turn ' + f.turn + '</span><div class="foehead"><h2>' + f.name + '</h2><span class="val">Hull ' + f.hp + "/" + f.max + "</span></div>" +
+    var atk = f.held || (f.silenced && f.intent !== "flee") ? null : fc.dice;
+    var rolls = atk ? " <b>Rolls " + dice(atk) + (f.intent === "torp" ? ", the same at any range." : " at " + RANGES[f.intent === "heavy" ? fc.r : f.range].toLowerCase() + " range.") + "</b>" : "";
+    h = '<span class="label">Battle, turn ' + f.turn + '</span><div class="foehead"><h2><button type="button" class="foename' + (foeInfo ? " on" : "") + '" data-info="1" aria-expanded="' + foeInfo + '">' + f.name + '<i class="ico" aria-hidden="true">i</i></button></h2><span class="val">Hull ' + f.hp + "/" + f.max + "</span></div>" +
       '<div class="bar foebar"><i style="width:' + Math.min(100, 100 * f.hp / f.max) + '%"></i></div>' +
       '<div class="foestat"><span>Shields <b>' + f.sh + "/" + foe.shield + "</b></span><span>Weapons <b>" + f.w + "%</b>" + (f.silenced ? ", silent" : "") + "</span>" +
       (f.e !== null ? "<span>Engines <b>" + f.e + "%</b>" + (f.e < 50 ? ", cannot move" : "") + "</span>" : "") + "</div>" +
-      battleSvg(f) + '<p>Beams ' + dice(foe.beam[0]) + " close, " + dice(foe.beam[1]) + " medium, " + dice(foe.beam[2]) + " long." + (foe.torps ? " Torpedoes " + dice(TORP) + ", " + f.torps + " left." : "") +
-      (f.w < 100 && f.w > 0 ? " With weapons at " + f.w + "% it rolls fewer beam dice." : "") + "</p>" +
+      battleSvg(f) +
+      '<div class="foeinfo' + (foeInfo ? " on" : "") + '"><span class="label">Its weapons</span><p>Beams <b>' + dice(foe.beam[0]) + "</b> close, <b>" + dice(foe.beam[1]) + "</b> medium, <b>" + dice(foe.beam[2]) + "</b> long. " +
+      (foe.torps ? "Torpedoes <b>" + dice(TORP) + "</b>, " + f.torps + " left." : "No torpedoes.") +
+      (f.w < 100 && f.w > 0 ? " With weapons at " + f.w + "% it rolls fewer beam dice." : "") + "</p><p>" + foe.about + "</p></div>" +
+      '<div class="meline"><b>Explorer</b><span><i>En</i> ' + state.energy + "/" + state.maxEnergy + "</span><span><i>Hull</i> " + state.hull + "/" + K.HULL + "</span><span><i>Torps</i> " + state.torps + "</span></div>" +
       (f.ter !== "open" ? "<p><b>" + TERRAIN[f.ter][0] + ".</b> " + (f.ter === "star" ? "The Explorer gains " + K.STAR_CHARGE + " energy every turn." : TERRAIN[f.ter][1]) + "</p>" : "") +
       (f.event && f.event.stage === 0 ? "" : (f.evNote ? '<div class="intent event' + (f.evNote.who ? " hasp" : "") + '">' + (f.evNote.who ? picImg(officer(f.evNote.who), "pt-s") : "") + '<div class="pbody"><span class="label">' + f.evNote.title + "</span>" + f.evNote.text +
         (f.evNote.fx.length ? '<ul class="fx">' + f.evNote.fx.map(function (z) { return '<li class="' + z[1] + '">' + z[0] + "</li>"; }).join("") + "</ul>" : "") + "</div></div>" : "")) +
       (f.elite === "ace" && f.turn === 1 ? '<p class="outnote">Ace: its first volley ignores your shields. Shield points do nothing this turn.</p>' : "") +
-      '<div class="intent"><span class="label">Its move this turn</span>' + (f.held ? "Holding its fire while it checks your bluff." + (f.intent === "closer" ? " It is still closing in." : f.intent === "away" ? " It is still pulling back." : "") : f.silenced && f.intent !== "flee" ? "Its weapons were knocked out last turn. It cannot fire this turn." + (f.intent === "closer" ? " It is closing in." : f.intent === "away" ? " It is pulling back." : "") : INTENT[f.intent]) +
+      '<div class="intent"><span class="label">Its move this turn</span>' + (f.held ? "Holding its fire while it checks your bluff." + (f.intent === "closer" ? " It is still closing in." : f.intent === "away" ? " It is still pulling back." : "") : f.silenced && f.intent !== "flee" ? "Its weapons were knocked out last turn. It cannot fire this turn." + (f.intent === "closer" ? " It is closing in." : f.intent === "away" ? " It is pulling back." : "") : INTENT[f.intent]) + rolls +
       (mendText ? " Afterwards it repairs " + mendText + "." : "") + "</div>" +
       (f.event && f.event.stage === 0 ? "\u0001" : "") + '<span class="label">Range' + (fc.r !== f.range ? ", moving to " + RANGES[fc.r].toLowerCase() + " after firing" : "") + '</span><div class="bands">';
     for (i = 0; i < 3; i++) h += '<span class="' + (i === f.range ? "on" : i === fc.r ? "next" : "") + '">' + RANGES[i] + "</span>";
@@ -1538,7 +1567,8 @@ button.act small.nohelp { opacity: .6; }
       '<div class="ctl"><div class="name">Shields<small>Each point absorbs ' + shieldPer() + " damage this turn</small></div>" + step("sh") +
       '<div class="name">' + laserType().n + "<small>" + (f.out.la ? "Knocked out. Repair them below" : "1d" + laserType().die[fc.fr] + (lvl("las") ? "+" + lvl("las") : "") + " a point at " + RANGES[fc.fr].toLowerCase() + " range. " + (laserType().pierce ? "Half goes straight past its shields" : "They hit its shields first")) + "</small></div>" + step("la", f.out.la) + "</div>" +
       '<span class="label tglabel">Lasers aim at</span><div class="seg">' + tg("h", "Hull") + tg("w", "Weapons") + tg("e", f.e !== null ? "Engines" : "No engines", f.e === null) + "</div>" +
-      '<div class="ctl"><div class="name">' + torpType().n + "<small>" + (f.out.to ? "Tube knocked out. Repair it below" : dice(torpType().d[fc.fr]) + " to the hull at this range, " + state.torps + " left. " + (torpType().pierce ? "Passes through shields" : "Wasted unless its shields are down") + (fc.fr === 0 && !hasRelic("baffle") ? ". At close range the blast hits you for 1d8" : "")) + "</small></div>" +
+      '<p class="aimnote">Torpedoes always hit the hull.</p>' +
+      '<div class="ctl"><div class="name">' + torpType().n + "<small>" + (f.out.to ? "Tube knocked out. Repair it below" : dice(torpType().d[fc.fr]) + " to the hull at this range, " + state.torps + " left. " + (torpType().pierce ? "Passes through shields" : "If its shields are up, it knocks them down instead") + (fc.fr === 0 && !hasRelic("baffle") ? ". At close range the blast hits you for 1d8" : "")) + "</small></div>" +
       '<div class="step"><button type="button" class="wide' + (a.torp ? " on" : "") + '" data-f="torp"' + (!a.torp && (free < 1 || state.torps < 1 || f.out.to) ? " disabled" : "") + ">" + (a.torp ? "Loaded" : "Load (1)") + "</button></div>";
     ["la", "to", "en"].forEach(function (k) {
       if (!f.out[k]) return;
@@ -1550,7 +1580,7 @@ button.act small.nohelp { opacity: .6; }
     if (a.la) h += "<div>Lasers roll " + fc.ld + " " + (fc.ld === 1 ? "die" : "dice") + " for <b>" + span(fc.lLo, fc.lHi) + "</b>" + (f.sh ? (laserType().pierce ? ". Half passes its shields, which take the first " + f.sh + " of the rest" : ". Its shields take the first " + f.sh) : "") + ". " +
       (a.tg === "h" ? "Its hull takes <b>" + span(fc.pLo, fc.pHi) + "</b>." : "Its " + TARGETS[a.tg] + " lose <b>" + span(Math.min(100, sysPct(f, fc.pLo)), Math.min(100, sysPct(f, fc.pHi))) + "%</b> and its hull takes " + span(Math.floor(fc.pLo * K.SYS_HULL_SHARE), Math.floor(fc.pHi * K.SYS_HULL_SHARE)) + ".") + "</div>";
     if (a.torp) h += '<div class="' + (fc.torpHits === 2 ? "good" : "bad") + '">' + (fc.torpHits === 2 ? "The torpedo reaches its hull for <b>" + span(fc.tLo, fc.tHi) + "</b>." :
-      fc.torpHits === 1 ? "The torpedo reaches its hull only if the lasers break its shields first." : "The torpedo will be <b>wasted</b> on its shields.") + "</div>";
+      fc.torpHits === 1 ? "The torpedo reaches its hull only if the lasers break its shields first." : "The torpedo will only knock down its shields, not reach its hull.") + "</div>";
     if (fc.kill) h += '<div class="good">' + (fc.kill === 2 ? "<b>Certain</b> to destroy it." : "<b>Could</b> destroy it.") + "</div>";
     h += '<div class="' + (fc.lMax > 0 ? "bad" : "good") + '">It deals ' + span(fc.iMin, fc.iMax) + (fc.dice ? " (" + dice(fc.dice) + (fc.blast ? " plus your torpedo blast" : "") + ")" : "") + ". Shields absorb up to " + fc.absorb + (fc.arm ? ", armour " + fc.arm : "") +
       (fc.bump ? ". Moving through the rocks costs 1d6" : "") + ". Hull loses <b>" + span(fc.lMin, fc.lMax) + "</b> of " + state.hull + "." + (fc.lMax >= K.CRIT_AT ? " A hit of " + K.CRIT_AT + " or more knocks out one of your systems." : "") + "</div>" +
@@ -2376,6 +2406,8 @@ button.act small.nohelp { opacity: .6; }
   /* ---------- How to play ----------
      A plain-language rules reference, one tap-to-open section per topic. Numbers come from the live values, so they follow the tuning screen. */
   var helpOpen = false;
+  function pc(x) { return Math.round(x * 100) + "%"; }
+  function pierceShare() { var pl = byId(LASERS, "pierce"), v = pl.pierce || 0; return v === .5 ? "Half" : pc(v); }
   function helpHtml() {
     var sec = function (title, items, open) { return '<details class="tg help"' + (open ? " open" : "") + "><summary>" + title + "</summary><ul>" + items.map(function (x) { return "<li>" + x + "</li>"; }).join("") + "</ul></details>"; };
     var lt = LASERS[0].die, h = '<span class="label">Rules</span><h2>How to play</h2><p class="lead">Command the Explorer through ' + K.GALAXIES +
@@ -2409,16 +2441,26 @@ button.act small.nohelp { opacity: .6; }
     h += sec("Battle: each turn", [
       "Battle starts at long range. The enemy's move for the turn is shown in the amber box <b>before</b> you choose, along with what it will repair afterwards.",
       "You have <b>" + power() + " power</b> a turn, each point costing " + K.POWER_COST + " energy. Split it between moving, shields, lasers, a torpedo and damage control. Unused power banks for next turn, up to " + K.BANK_MAX + ".",
-      "<b>Shields</b>: each point absorbs " + shieldPer() + " damage this turn. <b>Lasers</b>: one die a point (pulse lasers roll 1d" + lt[0] + " close, 1d" + lt[1] + " medium, 1d" + lt[2] + " long); they hit its shields first. <b>Torpedo</b>: 1 power, big damage, but wasted unless its shields are down when it arrives.",
+      "<b>Shields</b>: each point absorbs " + shieldPer() + " damage this turn. <b>Lasers</b>: one die a point (pulse lasers roll 1d" + lt[0] + " close, 1d" + lt[1] + " medium, 1d" + lt[2] + " long); they hit its shields first. <b>Torpedo</b>: 1 power and big damage, the same at any range.",
       "Aim lasers at its <b>hull</b>, or at its <b>weapons</b> or <b>engines</b> to cripple it (less hull damage). Engines below 50% cannot move.",
-      "Both sides fire at the range the turn starts at, then move. The exception is a <b>charged shot</b>: it fires at the range you end the turn at, so you can move out of its best range. Changing range costs " + K.MOVE_COST + " power. The forecast shows the lowest and highest result before you commit.",
+      "Torpedoes always strike the hull, whatever the lasers are aimed at. Piercing torpedoes pass through shields, but still only hit the hull.",
+      "A torpedo that meets raised shields knocks them down instead of hitting the hull, and the shields stay down until the enemy repairs them. Lasers fire first, so a torpedo reaches the hull when the lasers clear the shields that turn; the forecast shows whether it will. Piercing torpedoes always reach the hull.",
+      '<table class="wtab"><thead><tr><th></th><th>Shields up</th><th>Follows your aim</th></tr></thead><tbody>' +
+        "<tr><th>Ordinary lasers</th><td>Hit the shields first</td><td>Yes</td></tr>" +
+        "<tr><th>Piercing lasers</th><td>" + pierceShare() + " goes straight past</td><td>Yes</td></tr>" +
+        "<tr><th>Ordinary torpedoes</th><td>Knock the shields down, no hull damage</td><td>No: hull only</td></tr>" +
+        "<tr><th>Piercing torpedoes</th><td>Go straight through</td><td>No: hull only</td></tr></tbody></table>",
+      "Tip: piercing lasers are the best way to knock out engines while shields are up, for example to set up a boarding.",
+      "Both sides fire at the range the turn starts at, then move. The exception is a <b>charged shot</b>: it fires at the range you end the turn at, so you can move out of its best range. A ship <b>closing in</b> fires half its dice, but chases at full fire if you back away. Changing range costs " + K.MOVE_COST + " power. The forecast shows the lowest and highest result before you commit.",
       "A hit of " + K.CRIT_AT + " or more can knock out your lasers, torpedo tube or engines. Damage control (" + K.DC_COST + " power) brings one back next turn.",
       "The battlefield matters: nebulae halve dice at long range, asteroid fields take a die off both sides, and a star recharges you." ]);
     h += sec("Battle: ending it", [
       "<b>Destroy it</b> for materials. <b>Break away</b> at long range (" + K.BREAK_COST + " power) to fall back to the last sector; it keeps its damage.",
       "<b>Demand surrender</b> when it is at " + Math.round(K.SURRENDER_AT * 100) + "% hull or less: if it gives in you get more loot, otherwise it scuttles itself.",
-      "<b>Board it</b> at close range when it cannot move. Your security officer leads; the chance is shown on the button. Success takes the ship for double loot; failure risks the officer and leaves you unshielded for a turn.",
-      "Damaged raiders and gunships may try to flee. Knock their engines below 50% to stop them.",
+      "<b>Board it</b>: only ordinary Kethari ships (raider, gunship, carrier, outpost), never the gatekeeper or flagship, at close range, when it cannot move. Raiders, gunships and carriers must have their engines knocked below 50% first (aim lasers at engines); outposts have no engines, so close range is enough.",
+      "A fit security officer must lead. The chance: " + pc(K.BOARD_BASE) + " to start (outposts " + pc(K.BOARD_OUTPOST) + "), +" + pc(K.BOARD_PER_LVL) + " for each officer level (a green recruit adds about " + pc(K.BOARD_PER_LVL / 2) + "), +" + pc(K.BOARD_WEAP) + " if its weapons are below 50%, and up to +" + pc(K.BOARD_HULL) + " as its hull falls; at most 95%. The button shows the chance.",
+      "Success: the ship is taken for " + (K.BOARD_LOOT === 2 ? "double" : K.BOARD_LOOT + " times the") + " loot, plus its torpedoes, or for an outpost its gate codes and charts; the officer gains experience, with a chance of a relic. Failure: the officer may be hurt, and the enemy fires that turn with no shields up.",
+      "Damaged raiders and gunships may try to <b>flee</b>: they do not fire that turn and are gone at the end of it. Destroy it, or knock its engines below 50%, to stop it. Carriers and outposts hold their ground.",
       "About one battle in three brings a <b>situation</b>, such as a fire or a hail. Pick the officer's option (odds shown) or the sure fallback." ]);
     h += sec("The Dominion", [
       "The alert rises every " + alertDays() + " days you spend in a galaxy, bringing reinforcements. From alert 4 a hunter tracks you down, one sector a day.",
@@ -2600,6 +2642,8 @@ button.act small.nohelp { opacity: .6; }
     }
     var eb = e.target.closest("button[data-e]");
     if (eb) { if (!eb.disabled && state.enc) { if (eb.dataset.e === "pick") pickChoice(+eb.dataset.v); else endEncounter(); render(); } return; }
+    var ib = e.target.closest("button[data-info]");
+    if (ib) { foeInfo = !foeInfo; ib.classList.toggle("on", foeInfo); ib.setAttribute("aria-expanded", foeInfo); var fi = document.querySelector(".foeinfo"); if (fi) fi.classList.toggle("on", foeInfo); sfx("tap"); return; }
     var fb = e.target.closest("button[data-f]");
     if (fb) { if (!fb.disabled && state.fight) { fightInput(fb.dataset.f, fb.dataset.v); render(); } return; }
     var ub = e.target.closest("button[data-u]");
