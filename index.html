@@ -191,7 +191,7 @@ table.score tr.total td { border-top: 2px solid var(--line); color: var(--text);
 .meline b { color: var(--text); }
 .meline span { color: var(--text); font-family: var(--display); font-variant-numeric: tabular-nums; }
 .meline i { font-style: normal; color: var(--signal); font-family: inherit; margin-right: 2px; }
-p.aimnote { margin: 2px 0 0; font-size: 12px; color: var(--muted); }
+
 .foehead .val { font-family: var(--display); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .bar.foebar { margin: 2px 0 10px; }
 .bar.foebar i { background: var(--danger); }
@@ -220,6 +220,27 @@ p.aimnote { margin: 2px 0 0; font-size: 12px; color: var(--muted); }
 .step button:disabled, .seg button:disabled { color: var(--line); cursor: not-allowed; }
 .seg button.on, .step button.on { background: var(--signal); color: var(--space); border-color: var(--signal); }
 .step output { min-width: 1.6em; text-align: center; font-family: var(--display); font-size: 18px; font-variant-numeric: tabular-nums; }
+.outcome { margin: 14px 0 12px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 13px; display: grid; gap: 3px; color: var(--text); }
+.outcome .olab { display: inline-block; min-width: 6.4em; font-family: var(--display); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.outcome b { font-family: var(--display); font-variant-numeric: tabular-nums; }
+.outcome em { font-style: normal; font-weight: 600; }
+.outcome .good { color: var(--hull); }
+.outcome .bad, .outcome div.bad b { color: var(--danger); }
+button.act.danger { background: var(--danger); border-color: var(--danger); }
+img.pt-b { width: 32px; height: 40px; border-radius: 5px; }
+img.pt-a { width: 30px; height: 38px; border-radius: 5px; }
+.advise { margin-top: 14px; }
+.advrow { display: flex; gap: 10px; margin-top: 6px; }
+button.adv { position: relative; display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 44px; padding: 3px; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--muted); cursor: pointer; font: inherit; }
+button.adv small { font-family: var(--display); font-size: 11px; }
+button.adv.on { border-color: var(--signal); color: var(--text); }
+button.adv.warn { border-color: var(--danger); }
+button.adv.hurt img, button.adv.hurt small { opacity: .4; }
+button.adv .bang { position: absolute; top: -6px; right: -6px; width: 16px; height: 16px; border-radius: 50%; background: var(--danger); color: var(--space); font: 700 11px/16px var(--display); font-style: normal; text-align: center; }
+.bubble { margin-top: 8px; padding: 8px 10px; border: 1px solid var(--signal); border-radius: 8px; background: var(--panel-hi); font-size: 13.5px; align-items: flex-start; }
+.bubble.warn { border-color: var(--danger); }
+.bubble b { color: var(--text); }
+.sector .bubble p { margin: 2px 0 0; color: var(--text); }
 .forecast { margin: 14px 0 12px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 14px; display: grid; gap: 4px; }
 .forecast b { font-family: var(--display); font-variant-numeric: tabular-nums; color: var(--text); }
 .forecast .bad b { color: var(--danger); }
@@ -378,7 +399,7 @@ button.act small.nohelp { opacity: .6; }
   </section>
 
   <div class="foot">
-    <span>Build 26: battle screen and boarding</span>
+    <span>Build 27: officer advice</span>
     <span class="footbtns"><button id="soundBtn" type="button">Sound: all</button><button id="helpBtn" type="button">How to play</button><button id="recBtn" type="button">Record</button><button id="tuneBtn" type="button">Tuning</button><button id="newGame" type="button">New game</button></span>
   </div>
 </div>
@@ -414,7 +435,7 @@ button.act small.nohelp { opacity: .6; }
     BASE_CAP: 1000, RAID_DMG0: 30, RAID_DMG1: 80, RAID_DMG2: 150, RAID_SHARE: .5, RAID_FROM_BY_GALAXY: [5, 4, 3, 2, 2], RELIEF_MATS: 25, RELIEF_HULL: 10, LAST_BASE_MIN: 100,
     AWAY_COST: 20, AST_MINES: 2, AST_MAT_MIN: 25, AST_MAT_MAX: 45, AST_MINE_DMG: 6, SLOW_SHARE: .5, NEB_FIND: .6,
     POWER: 6, POWER_COST: 5, SHIELD_PER: 6, CHARGE_MULT: 1.5, CHARGE_FLAGSHIP: 2, MOVE_COST: 2, BREAK_COST: 3, BANK_MAX: 3, SYS_FACTOR: 250, SYS_HULL_SHARE: .5, REPAIR_SYS: 10, REPAIR_SHIELD_DIV: 10, CRIT_AT: 8, DC_COST: 2, STAR_CHARGE: 20,
-    FLEE_AT: .25, SURRENDER_AT: .3, SURRENDER_CHANCE: .5,
+    FLEE_AT: .25, SURRENDER_AT: .3, SURRENDER_CHANCE: .5, SURR_CMD2: .05, SURR_CMD3: .1,
     /* Difficulty that rises by galaxy (values for galaxies 1 to 5; later galaxies use the last value). */
     BEAM_BY_GALAXY: [1.0, 1.1, 1.35, 2.3, 2.8], GATE_GROWTH_BY_GALAXY: [.1, .1, .1, .3, .3],
     DEPTH_HULL: .5, DEPTH_LOOT: .2, DEPTH_NUMBERS: .3,
@@ -718,6 +739,7 @@ button.act small.nohelp { opacity: .6; }
     [1, 2, 3, 4, 5].forEach(function (n) { fld(g, "Raiders, gunships, carriers and outposts: beam dice multiplied by, galaxy " + n, "K.BEAM_BY_GALAXY." + (n - 1), "dec"); });
     [1, 2, 3, 4, 5].forEach(function (n) { fld(g, "Gatekeeper: hull and shield growth a galaxy, %, galaxy " + n, "K.GATE_GROWTH_BY_GALAXY." + (n - 1), "pct"); });
     fld(g, "Hull left when a ship may flee, %", "K.FLEE_AT", "pct"); fld(g, "Hull left when surrender can be demanded, %", "K.SURRENDER_AT", "pct"); fld(g, "Chance it surrenders, %", "K.SURRENDER_CHANCE", "pct");
+    fld(g, "Surrender: added by a level 2 commander, %", "K.SURR_CMD2", "pct"); fld(g, "Surrender: added by a level 3 commander, %", "K.SURR_CMD3", "pct");
     FOES.forEach(function (f, i) {
       g = "Battle: " + f.n; var b = "FOES." + i + ".";
       fld(g, "Hull", b + "hull"); fld(g, "Shields", b + "shield");
@@ -1204,7 +1226,7 @@ button.act small.nohelp { opacity: .6; }
   /* Whether the enemy's weapons panel is open on the battle screen. Screen only; closed at the start of each battle. */
   var foeInfo = false;
   function startFight(c, ambush) {
-    foeInfo = false;
+    foeInfo = false; advOpen = null;
     var cell = here(), foe = foeNow(c.kind, c.elite);
     var ter = cell.t === "kethari" ? (cell.ter || "open") : ({ nebula: "nebula", asteroids: "asteroids", star: "star", blackhole: "gravity" })[cell.t] || "open";
     var f = { kind: c.kind, hp: c.hp, max: c.max || Math.max(foe.hull, c.hp), name: c.name || foe.n, sh: foe.shield, w: 100, e: foe.engines ? 100 : null, torps: foe.torps, range: 2, charged: false, moved: false, silenced: false,
@@ -1300,10 +1322,17 @@ button.act small.nohelp { opacity: .6; }
   }
   function lootOf(f) { var foe = foeNow(f.kind, f.elite); return foe.loot[0] + rnd(foe.loot[1] - foe.loot[0] + 1); }
   function canDemand(f) { return f.kind <= 3 && f.hp <= (f.max || foeNow(f.kind, f.elite).hull) * K.SURRENDER_AT; }
-  function surrenderChance(f) { return Math.min(1, K.SURRENDER_CHANCE + (f.w < 50 ? .25 : 0)); }
+  /* A fit commander adds to the chance: nothing at level 1 or green, SURR_CMD2 at level 2, SURR_CMD3 at level 3. */
+  function surrenderChance(f) {
+    var cmd = officer("cmd"), bonus = cmd && cmd.st === "fit" ? (cmd.lvl >= 3 ? K.SURR_CMD3 : cmd.lvl === 2 ? K.SURR_CMD2 : 0) : 0;
+    return Math.min(1, K.SURRENDER_CHANCE + (f.w < 50 ? .25 : 0) + bonus);
+  }
   function demandSurrender() {
     var f = state.fight; if (!f || state.over || !canDemand(f)) return;
-    if (Math.random() < surrenderChance(f)) { sfx("gain"); fightWon(f, "The Explorer demanded its surrender.", Math.round(lootOf(f) * 1.5), "captured"); return; }
+    if (Math.random() < surrenderChance(f)) {
+      var cmd = officer("cmd"), xp = cmd && cmd.st === "fit" && cmd.lvl > 0 ? gainXp(cmd) : null;
+      sfx("gain"); fightWon(f, "The Explorer demanded its surrender." + (xp ? " " + xp[0] + "." : ""), Math.round(lootOf(f) * 1.5), "captured"); return;
+    }
     var dmg = f.range < 2 ? Math.max(0, roll(2, 6) - lvl("arm")) : 0;
     state.hull -= dmg; sfx("boom");
     var line = "The Explorer demanded its surrender." + (dmg ? " The blast as it scuttled cost " + dmg + " hull." : "");
@@ -1564,11 +1593,10 @@ button.act small.nohelp { opacity: .6; }
     h += '</div></div><div class="seg">' + seg(-1, "Close in (" + mc + ")", f.range === 0) + seg(0, "Hold") +
       (f.range === 2 ? seg(2, "Break away (" + bc + ")") : seg(1, "Back off (" + mc + ")")) + "</div>" +
       (f.out.en ? '<p class="outnote">Engines are out: the Explorer cannot change range or break away.</p>' : "") +
-      '<div class="ctl"><div class="name">Shields<small>Each point absorbs ' + shieldPer() + " damage this turn</small></div>" + step("sh") +
-      '<div class="name">' + laserType().n + "<small>" + (f.out.la ? "Knocked out. Repair them below" : "1d" + laserType().die[fc.fr] + (lvl("las") ? "+" + lvl("las") : "") + " a point at " + RANGES[fc.fr].toLowerCase() + " range. " + (laserType().pierce ? "Half goes straight past its shields" : "They hit its shields first")) + "</small></div>" + step("la", f.out.la) + "</div>" +
+      '<div class="ctl"><div class="name">Shields<small>Each point absorbs ' + shieldPer() + " damage</small></div>" + step("sh") +
+      '<div class="name">' + laserType().n + "<small>" + (f.out.la ? "Knocked out. Repair them below" : "1d" + laserType().die[fc.fr] + (lvl("las") ? "+" + lvl("las") : "") + " a point") + "</small></div>" + step("la", f.out.la) + "</div>" +
       '<span class="label tglabel">Lasers aim at</span><div class="seg">' + tg("h", "Hull") + tg("w", "Weapons") + tg("e", f.e !== null ? "Engines" : "No engines", f.e === null) + "</div>" +
-      '<p class="aimnote">Torpedoes always hit the hull.</p>' +
-      '<div class="ctl"><div class="name">' + torpType().n + "<small>" + (f.out.to ? "Tube knocked out. Repair it below" : dice(torpType().d[fc.fr]) + " to the hull at this range, " + state.torps + " left. " + (torpType().pierce ? "Passes through shields" : "If its shields are up, it knocks them down instead") + (fc.fr === 0 && !hasRelic("baffle") ? ". At close range the blast hits you for 1d8" : "")) + "</small></div>" +
+      '<div class="ctl"><div class="name">' + torpType().n + "<small>" + (f.out.to ? "Tube knocked out. Repair it below" : dice(torpType().d[fc.fr]) + " to the hull" + (fc.fr === 0 && !hasRelic("baffle") ? ". At close range the blast hits you for 1d8" : "")) + "</small></div>" +
       '<div class="step"><button type="button" class="wide' + (a.torp ? " on" : "") + '" data-f="torp"' + (!a.torp && (free < 1 || state.torps < 1 || f.out.to) ? " disabled" : "") + ">" + (a.torp ? "Loaded" : "Load (1)") + "</button></div>";
     ["la", "to", "en"].forEach(function (k) {
       if (!f.out[k]) return;
@@ -1576,18 +1604,19 @@ button.act small.nohelp { opacity: .6; }
       h += '<div class="name">Damage control: ' + OWN[k] + "<small>Working again next turn</small></div>" +
         '<div class="step"><button type="button" class="wide' + (on ? " on" : "") + '" data-f="dc" data-v="' + k + '"' + (!on && free < K.DC_COST ? " disabled" : "") + ">" + (on ? "Repairing" : "Repair (" + K.DC_COST + ")") + "</button></div>";
     });
-    h += '</div><div class="forecast">';
-    if (a.la) h += "<div>Lasers roll " + fc.ld + " " + (fc.ld === 1 ? "die" : "dice") + " for <b>" + span(fc.lLo, fc.lHi) + "</b>" + (f.sh ? (laserType().pierce ? ". Half passes its shields, which take the first " + f.sh + " of the rest" : ". Its shields take the first " + f.sh) : "") + ". " +
-      (a.tg === "h" ? "Its hull takes <b>" + span(fc.pLo, fc.pHi) + "</b>." : "Its " + TARGETS[a.tg] + " lose <b>" + span(Math.min(100, sysPct(f, fc.pLo)), Math.min(100, sysPct(f, fc.pHi))) + "%</b> and its hull takes " + span(Math.floor(fc.pLo * K.SYS_HULL_SHARE), Math.floor(fc.pHi * K.SYS_HULL_SHARE)) + ".") + "</div>";
-    if (a.torp) h += '<div class="' + (fc.torpHits === 2 ? "good" : "bad") + '">' + (fc.torpHits === 2 ? "The torpedo reaches its hull for <b>" + span(fc.tLo, fc.tHi) + "</b>." :
-      fc.torpHits === 1 ? "The torpedo reaches its hull only if the lasers break its shields first." : "The torpedo will only knock down its shields, not reach its hull.") + "</div>";
-    if (fc.kill) h += '<div class="good">' + (fc.kill === 2 ? "<b>Certain</b> to destroy it." : "<b>Could</b> destroy it.") + "</div>";
-    h += '<div class="' + (fc.lMax > 0 ? "bad" : "good") + '">It deals ' + span(fc.iMin, fc.iMax) + (fc.dice ? " (" + dice(fc.dice) + (fc.blast ? " plus your torpedo blast" : "") + ")" : "") + ". Shields absorb up to " + fc.absorb + (fc.arm ? ", armour " + fc.arm : "") +
-      (fc.bump ? ". Moving through the rocks costs 1d6" : "") + ". Hull loses <b>" + span(fc.lMin, fc.lMax) + "</b> of " + state.hull + "." + (fc.lMax >= K.CRIT_AT ? " A hit of " + K.CRIT_AT + " or more knocks out one of your systems." : "") + "</div>" +
-      "<div>Energy used: <b>" + u * K.POWER_COST + "</b>" + (fc.bank ? ". Unspent power banked for next turn: <b>" + fc.bank + "</b>" : "") + "</div></div>" +
-      '<div class="actions">' + boardBtn(f) + (canDemand(f) ? '<button type="button" class="act second" data-f="yield">Demand surrender<small>' + Math.round(surrenderChance(f) * 100) + "% it gives in for half as much loot again. Otherwise it scuttles</small></button>" : "") +
+    /* Outcome first: what the Explorer deals and takes this turn. The rules behind the figures are in How to play. */
+    var danger = fc.lMax >= state.hull, deal;
+    if (!a.la && !a.torp) deal = "Nothing this turn";
+    else if (fc.pHi === 0 && !fc.torpHits) deal = a.torp ? "its shields knocked down, nothing to its hull" : "its shields take it all";
+    else if (a.tg !== "h" && a.la) deal = "its " + TARGETS[a.tg] + " down <b>" + span(Math.min(100, sysPct(f, fc.pLo)), Math.min(100, sysPct(f, fc.pHi))) + "%</b>" + (fc.torpHits ? ", torpedo <b>" + span(fc.torpHits === 2 ? fc.tLo : 0, fc.tHi) + "</b> to its hull" : "");
+
+    else deal = "<b>" + span(fc.hLo, fc.hHi) + "</b> to its hull";
+    h += '</div><div class="outcome"><div><span class="olab">You deal</span>' + deal + (fc.kill ? ' <em class="good">' + (fc.kill === 2 ? "certain" : "could") + " destroy it</em>" : "") + "</div>" +
+      '<div' + (danger ? ' class="bad"' : "") + '><span class="olab">You take</span><b>' + span(fc.lMin, fc.lMax) + "</b> damage" + (danger ? ' <em class="bad">' + (fc.lMin >= state.hull ? "certain" : "could") + " destroy the Explorer</em>" : "") + "</div></div>" +
+      '<div class="actions">' + boardBtn(f) + yieldBtn(f) +
       (f.last ? '<button type="button" class="act second" data-f="last">Same as last turn</button>' : "") +
-      '<button type="button" class="act" data-f="go">' + (fc.escape ? "Break away" : u === 0 ? (fc.bank ? "Hold fire and bank power" : "Wait a turn") : "Commit turn") + "</button></div>";
+      '<button type="button" class="act' + (danger ? " danger" : "") + '" data-f="go">' + (fc.escape ? "Break away" : u === 0 ? (fc.bank ? "Hold fire and bank power" : "Wait a turn") : "Commit turn") + "</button></div>" +
+      adviceHtml(f, fc);
     var cut = h.indexOf("\u0001");
     if (cut >= 0) h = h.slice(0, cut) + eventHtml(f);
     return h;
@@ -1596,8 +1625,116 @@ button.act small.nohelp { opacity: .6; }
     if (!boardable(f)) return "";
     var sec = officer("sec"), fit = sec && sec.st === "fit";
     if (!fit) return '<button type="button" class="act second full" data-f="board" disabled>Board it<small>No fit security officer to lead a boarding party</small></button>';
-    return '<button type="button" class="act second full" data-f="board">Board it<small>' + esc(short(sec)) + " leads: " + Math.round(boardChance(f) * 100) + "% chance. Win: " + (K.BOARD_LOOT === 2 ? "double" : K.BOARD_LOOT + " times the") +
-      " loot" + (f.kind === 3 ? ", gate codes and its charts" : f.torps ? " and its torpedoes" : "") + ". Fail: " + esc(short(sec)) + " may be hurt, and it fires on you unshielded</small></button>";
+    return '<button type="button" class="act second full pick" data-f="board">' + picImg(sec, "pt-b") + "<span>Board it<small>" + esc(short(sec)) + ": " + Math.round(boardChance(f) * 100) + "%. " + (K.BOARD_LOOT === 2 ? "Double" : K.BOARD_LOOT + " times the") +
+      " loot" + (f.kind === 3 ? ", gate codes and charts" : f.torps ? " and its torpedoes" : "") + ", or the officer may be hurt and it fires on you unshielded.</small></span></button>";
+  }
+  function yieldBtn(f) {
+    if (!canDemand(f)) return "";
+    var cmd = officer("cmd"), fit = cmd && cmd.st === "fit", pct = Math.round(surrenderChance(f) * 100) + "%. More loot, or it scuttles.";
+    return '<button type="button" class="act second full' + (fit ? " pick" : "") + '" data-f="yield">' + (fit ? picImg(cmd, "pt-b") : "") + "<span>Demand surrender<small>" + (fit ? esc(short(cmd)) + ": " : "") + pct + "</small></span></button>";
+  }
+
+  /* ---------- Officer advice in battle ----------
+     Tap a portrait under the Commit button to hear that officer. Advice only: it never sets anything.
+     Level 1 gives a hint, level 2 specific advice, level 3 adds the figures. Medical and green officers do not advise.
+     Officers never speak unprompted; when the next shot could destroy the Explorer, those whose advice is about it show a red "!". */
+  var advOpen = null, ADV_ROLES = ["cmd", "sec", "eng", "sci"];
+  function advisers() { return ADV_ROLES.map(officer).filter(function (o) { return o && o.st !== "lost" && o.lvl > 0; }); }
+  function lv(o, l1, l2, l3) { return o.lvl >= 3 && l3 !== undefined ? l3 : o.lvl >= 2 ? l2 : l1; }
+  function avg(d) { return d ? d[0] * (d[1] + 1) / 2 : 0; }
+  /* Ranges the Explorer can end this turn at, by the move needed to get there. */
+  function reach(f) {
+    var r = [{ m: 0, r: f.range }];
+    if (!f.out.en) { if (f.range > 0) r.push({ m: -1, r: f.range - 1 }); if (f.range < 2) r.push({ m: 1, r: f.range + 1 }); }
+    return r;
+  }
+  function moveWord(m, r) { return (m < 0 ? "Close in to " : "Back off to ") + RANGES[r].toLowerCase(); }
+  function advice(o, f, fc) {
+    var foe = foeNow(f.kind, f.elite), a = f.a, danger = fc.lMax >= state.hull, rng = RANGES[f.range].toLowerCase(), x, best;
+    if (o.role === "cmd") {
+      if (danger && canDemand(f)) return { d: 1, t: lv(o, "Demand its surrender. Now.", "Make it surrender before it fires. Either way, that shot never comes.",
+        "Make it surrender before it fires. Either way, that shot never comes. " + Math.round(surrenderChance(f) * 100) + "% it gives in.") };
+      if (danger) return { d: 1, t: lv(o, "Not like this.", "Not like this. Get us out of its sights, then finish it.",
+        "Not like this. Its worst is " + fc.lMax + " and we have " + state.hull + ". Get us out of its sights, then finish it.") };
+      if (canDemand(f)) return { t: lv(o, "It's beaten. Demand its surrender.", "It's beaten. Demand its surrender and take the loot.",
+        "It's beaten. Demand its surrender: " + Math.round(surrenderChance(f) * 100) + "% it gives in, and the loot is better.") };
+      if (fc.kill) return { t: lv(o, "We can end this.", "One more volley ends this. Do it.", fc.kill === 2 ? "One more volley ends this. Do it. It cannot survive what you have set." : "One more volley ends this. Do it. The dice decide whether it goes this turn.") };
+      var ours = (fc.hLo + fc.hHi) / 2, theirs = (fc.lMin + fc.lMax) / 2;
+      if (ours > 0 && theirs > 0 && state.hull / theirs < f.hp / ours) return { t: lv(o, "This trade favours them.", "We can't win this trade. Break off while we still can.",
+        "We can't win this trade. At this rate it needs about " + Math.ceil(state.hull / theirs) + " turns to finish us, and we need " + Math.ceil(f.hp / ours) + ". Break off while we still can.") };
+      if (f.hp >= f.max) return { t: lv(o, "Steady.", "Steady. Make the first blow count.") };
+      return { t: lv(o, "Steady. Keep at it.", "Steady. It's bleeding. Keep the pressure on.", "Steady. It's down to " + Math.round(100 * f.hp / f.max) + "% hull. Keep the pressure on.") };
+    }
+    if (o.role === "sec") {
+      if (f.intent === "heavy" && !f.held && !f.silenced) {
+        x = reach(f).map(function (q) { return { m: q.m, r: q.r, d: foeDice(f, foe, q.r) }; });
+        best = x.reduce(function (p, q) { return avg(q.d) < avg(p.d) ? q : p; });
+        var now = foeDice(f, foe, fc.r);
+        if (avg(best.d) < avg(now)) return { d: danger ? 1 : 0, t: lv(o, "Don't sit in front of that charge.",
+          RANGES[fc.r] + " range is its kill zone. " + (best.m ? moveWord(best.m, best.r) : "Hold at " + RANGES[best.r].toLowerCase()) + ". Now.",
+          RANGES[fc.r] + " range is its kill zone. " + (best.m ? moveWord(best.m, best.r) : "Hold at " + RANGES[best.r].toLowerCase()) + ". Now. " + dice(now) + " becomes " + (best.d ? dice(best.d) : "nothing") + ".") };
+      }
+      if (danger) return { d: 1, t: lv(o, "This one's going to hurt.", "We can't dodge this volley. Raise shields" + (f.range === 2 && !f.out.en ? ", or break away" : "") + ".",
+        "We can't dodge this volley. Its worst is " + fc.lMax + " and we have " + state.hull + ". Raise shields" + (f.range === 2 && !f.out.en ? ", or break away" : "") + ".") };
+      if (boardable(f)) return { t: lv(o, "It's dead in the water. We could board.", (f.e === null ? "It can't run. " : "Engines are out. ") + "Send my team across.",
+        (f.e === null ? "It can't run. " : "Engines are out. ") + "Send my team across: " + Math.round(boardChance(f) * 100) + "% we take her.") };
+      if (f.kind <= 3 && f.e !== null && f.e >= 50 && a.tg !== "e" && (f.intent === "flee" || f.hp <= f.max * .6))
+        return { t: lv(o, f.intent === "flee" ? "It's running. Hit the engines." : "Hit the engines.", (f.intent === "flee" ? "It's running. " : "") + "Hit the engines. Under half power it can't run, and we board.",
+          (f.intent === "flee" ? "It's running. " : "") + "Hit the engines. They're at " + f.e + "%. Under half power it can't run, and we board.") };
+      /* Best range: our laser die against its expected beam damage there. */
+      var lt = laserType(), score = function (r) { return (lt.die[r] + 1) / 2 / Math.max(1, avg(foe.beam[r])); };
+      best = reach(f).reduce(function (p, q) { return score(q.r) > score(p.r) + .001 ? q : p; });
+      if (best.r === f.range) return { t: lv(o, "Hold here. This range is ours.", "Hold at " + rng + ". This range is ours.", "Hold at " + rng + ". This range is ours: its beams roll " + dice(foe.beam[f.range]) + " here, our lasers 1d" + lt.die[f.range] + " a point.") };
+      return { t: lv(o, "This range favours it.", "Take us to " + RANGES[best.r].toLowerCase() + ". Better odds there.",
+        "Take us to " + RANGES[best.r].toLowerCase() + ". Better odds there: its beams drop from " + dice(foe.beam[f.range]) + " to " + dice(foe.beam[best.r]) + ", our lasers roll 1d" + lt.die[best.r] + " a point.") };
+    }
+    if (o.role === "eng") {
+      var down = ["la", "to", "en"].filter(function (k) { return f.out[k] && a.dc.indexOf(k) < 0; });
+      if (down.length) { var k = down[0], pl = k === "la"; return { t: lv(o, "Something's knocked out. Damage control can fix it.",
+        "The " + OWN[k] + (pl ? " are" : " is") + " down, but give me " + K.DC_COST + " power and she'll have " + (pl ? "them" : "it") + " back next turn.") }; }
+      if (danger) {
+        var need = Math.ceil((fc.lMax - state.hull + 1 + fc.absorb) / shieldPer()), have = a.sh + (powerCap() - used(a));
+        return { d: 1, t: lv(o, "I don't like this, Captain. She can't take a hit that big.", "Shields won't hold against that. Change range or get us out of here.",
+          f.elite === "ace" && f.turn === 1 ? "Shields won't help against this first volley. Change range or get us out of here." :
+          need <= have ? "Shields won't hold as set. Put " + need + " into shields and she'll take the worst of it." : "Shields won't hold against that: she'd need " + need + " points and you have " + have + ". Change range or get us out of here.") };
+      }
+      var left = state.energy - used(a) * K.POWER_COST;
+      if (left < warpPer() * 4) return { t: lv(o, "Go easy on the power.", "Go easy on the power. That leaves us " + left + " energy.", "Go easy on the power. That leaves us " + left + " energy, about " + Math.floor(left / warpPer()) + " sectors of warp.") };
+      var spare = Math.min(a.sh, Math.floor((fc.absorb + fc.arm - fc.iMax - (fc.bump ? 6 : 0)) / shieldPer()));
+      if (spare > 0) return { t: lv(o, "You could spare some for the lasers.", "You could spare some shields for the lasers.", "You could spare " + spare + " shield point" + (spare > 1 ? "s" : "") + " for the lasers.") };
+      return { t: "Power's balanced. She's happy." };
+    }
+    /* Science */
+    var thin = f.sh <= foe.shield / 3, tor = state.torps > 0 && !torpType().pierce;
+    if (foe.shield && thin) return { t: lv(o, "Its shields are weakening.", f.sh ? "Its shields are failing. Our lasers will cut straight through." : "Its shields are down. Our lasers will cut straight through.",
+      (f.sh ? "Its shields are failing: " + f.sh + " of " + foe.shield + "." : "Its shields are down.") + " Our lasers will cut straight through" + (tor ? ", and a torpedo behind them reaches the hull." : ".")) };
+    if (f.elite) {
+      var tip = { veteran: "Keep the shields up.", hardened: "Piercing weapons will serve us best.", swift: "Hit its engines hard, all at once.", ace: "After the first volley it's ordinary." }[f.elite];
+      var what = ELITES[f.elite].about.replace("Elite: ", "");
+      return { t: lv(o, "Interesting. It's no ordinary ship.", "Interesting. Scans say it's " + f.elite + ": " + what, "Interesting. Scans say it's " + f.elite + ": " + what + " " + tip) };
+    }
+    if (f.ter !== "open") {
+      var ter = { nebula: ["The nebula halves everyone's dice at long range.", "Its long-range beams roll " + dice([Math.ceil(foe.beam[2][0] / 2), foe.beam[2][1]]) + " in here, not " + dice(foe.beam[2]) + "."],
+        asteroids: ["The rocks take a die off both sides, and moving costs us hull.", "Each move through the rocks costs up to 6 hull."],
+        star: ["The star tops up our energy every turn.", K.STAR_CHARGE + " energy a turn."],
+        gravity: ["The black hole doubles the cost of changing range.", "Each move costs " + K.MOVE_COST * 2 + " power."] }[f.ter];
+      return { t: lv(o, "This " + TERRAIN[f.ter][0].toLowerCase() + " changes things.", ter[0], ter[0] + " " + ter[1]) };
+    }
+    if (f.sh > 0) return { t: lv(o, "Those shields are holding.", "Wear them down with lasers before you spend a torpedo.", "Its shields stand at " + f.sh + ". Wear them down with lasers before you spend a torpedo.") };
+    return { t: "Nothing unusual on the scans." };
+  }
+  function adviceHtml(f, fc) {
+    var list = advisers(); if (!list.length) return "";
+    var h = '<div class="advise"><span class="label">Ask an officer</span><div class="advrow">', open = null;
+    list.forEach(function (o) {
+      var fit = o.st === "fit", ad = fit ? advice(o, f, fc) : { t: "Injured, and cannot advise." }, on = advOpen === o.role;
+      if (on) open = [o, ad];
+      h += '<button type="button" class="adv' + (on ? " on" : "") + (fit ? "" : " hurt") + (ad && ad.d ? " warn" : "") + '" data-adv="' + o.role + '" aria-label="' + esc(short(o)) + (fit ? "" : ", injured") + '">' +
+        picImg(o, "pt-a") + (ad && ad.d ? '<i class="bang">!</i>' : "") + "<small>" + roleById(o.role).n.slice(0, 3) + " " + o.lvl + "</small></button>";
+    });
+    h += "</div>";
+    if (open) h += '<div class="bubble hasp' + (open[1].d ? " warn" : "") + '">' + picImg(open[0], "pt-s") + '<div class="pbody"><b>' + esc(short(open[0])) + "</b><p>" + open[1].t + "</p></div></div>";
+    return h + "</div>";
   }
 
   /* ---------- Galaxy traits ----------
@@ -2451,12 +2588,14 @@ button.act small.nohelp { opacity: .6; }
         "<tr><th>Ordinary torpedoes</th><td>Knock the shields down, no hull damage</td><td>No: hull only</td></tr>" +
         "<tr><th>Piercing torpedoes</th><td>Go straight through</td><td>No: hull only</td></tr></tbody></table>",
       "Tip: piercing lasers are the best way to knock out engines while shields are up, for example to set up a boarding.",
-      "Both sides fire at the range the turn starts at, then move. The exception is a <b>charged shot</b>: it fires at the range you end the turn at, so you can move out of its best range. A ship <b>closing in</b> fires half its dice, but chases at full fire if you back away. Changing range costs " + K.MOVE_COST + " power. The forecast shows the lowest and highest result before you commit.",
+      "Both sides fire at the range the turn starts at, then move. The exception is a <b>charged shot</b>: it fires at the range you end the turn at, so you can move out of its best range. A ship <b>closing in</b> fires half its dice, but chases at full fire if you back away. Changing range costs " + K.MOVE_COST + " power.",
+      "Before you commit, <b>You deal</b> and <b>You take</b> show the lowest and highest damage for the power you have set (after its shields, and after your shields and armour). If the worst case could destroy the Explorer, the figures and the Commit button turn red.",
+      "<b>Ask an officer</b>: tap a portrait under the Commit button for advice from your commander, security, engineering or science officer. Higher levels give more specific advice, with figures at level 3. Medical and green officers do not advise, nor do injured ones. A red <b>!</b> means the next shot could destroy the Explorer and that officer has advice about it.",
       "A hit of " + K.CRIT_AT + " or more can knock out your lasers, torpedo tube or engines. Damage control (" + K.DC_COST + " power) brings one back next turn.",
       "The battlefield matters: nebulae halve dice at long range, asteroid fields take a die off both sides, and a star recharges you." ]);
     h += sec("Battle: ending it", [
       "<b>Destroy it</b> for materials. <b>Break away</b> at long range (" + K.BREAK_COST + " power) to fall back to the last sector; it keeps its damage.",
-      "<b>Demand surrender</b> when it is at " + Math.round(K.SURRENDER_AT * 100) + "% hull or less: if it gives in you get more loot, otherwise it scuttles itself.",
+      "<b>Demand surrender</b> when it is at " + Math.round(K.SURRENDER_AT * 100) + "% hull or less: if it gives in you get more loot, otherwise it scuttles itself (a blast of up to 2d6 hull at close or medium range). Either way the battle ends, so its next shot never comes. The chance is " + pc(K.SURRENDER_CHANCE) + ", +25% if its weapons are below 50%, and a fit commander adds " + pc(K.SURR_CMD2) + " at level 2 or " + pc(K.SURR_CMD3) + " at level 3. A commander who wins a surrender gains experience.",
       "<b>Board it</b>: only ordinary Kethari ships (raider, gunship, carrier, outpost), never the gatekeeper or flagship, at close range, when it cannot move. Raiders, gunships and carriers must have their engines knocked below 50% first (aim lasers at engines); outposts have no engines, so close range is enough.",
       "A fit security officer must lead. The chance: " + pc(K.BOARD_BASE) + " to start (outposts " + pc(K.BOARD_OUTPOST) + "), +" + pc(K.BOARD_PER_LVL) + " for each officer level (a green recruit adds about " + pc(K.BOARD_PER_LVL / 2) + "), +" + pc(K.BOARD_WEAP) + " if its weapons are below 50%, and up to +" + pc(K.BOARD_HULL) + " as its hull falls; at most 95%. The button shows the chance.",
       "Success: the ship is taken for " + (K.BOARD_LOOT === 2 ? "double" : K.BOARD_LOOT + " times the") + " loot, plus its torpedoes, or for an outpost its gate codes and charts; the officer gains experience, with a chance of a relic. Failure: the officer may be hurt, and the enemy fires that turn with no shields up.",
@@ -2644,6 +2783,8 @@ button.act small.nohelp { opacity: .6; }
     if (eb) { if (!eb.disabled && state.enc) { if (eb.dataset.e === "pick") pickChoice(+eb.dataset.v); else endEncounter(); render(); } return; }
     var ib = e.target.closest("button[data-info]");
     if (ib) { foeInfo = !foeInfo; ib.classList.toggle("on", foeInfo); ib.setAttribute("aria-expanded", foeInfo); var fi = document.querySelector(".foeinfo"); if (fi) fi.classList.toggle("on", foeInfo); sfx("tap"); return; }
+    var ab = e.target.closest("button[data-adv]");
+    if (ab) { if (state.fight) { advOpen = advOpen === ab.dataset.adv ? null : ab.dataset.adv; sfx("tap"); render(); } return; }
     var fb = e.target.closest("button[data-f]");
     if (fb) { if (!fb.disabled && state.fight) { fightInput(fb.dataset.f, fb.dataset.v); render(); } return; }
     var ub = e.target.closest("button[data-u]");
