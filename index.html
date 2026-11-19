@@ -399,7 +399,7 @@ button.act small.nohelp { opacity: .6; }
   </section>
 
   <div class="foot">
-    <span>Build 27: officer advice</span>
+    <span>Build 28: hull plating</span>
     <span class="footbtns"><button id="soundBtn" type="button">Sound: all</button><button id="helpBtn" type="button">How to play</button><button id="recBtn" type="button">Record</button><button id="tuneBtn" type="button">Tuning</button><button id="newGame" type="button">New game</button></span>
   </div>
 </div>
@@ -431,10 +431,10 @@ button.act small.nohelp { opacity: .6; }
     ELITE_FROM: 3, ELITE_CHANCE: .25, ELITE_LOOT: 1.5, RELIC_MISSION: .2, RELIC_DERELICT: .15, RELIC_BOARD: .35, RELIC_ELITE: .5, JOB_RELIC: .2, JOB_MAT_MIN: 40, JOB_MAT_MAX: 60, PATROLS: 2, STRONGHOLD: .67, BELT_GAIN: .5,
     /* Story arcs: points needed for endings 2 to 5 (fewer points: ending 1), points lost for a missed chapter, and each ending's
        effect on the flagship: hull and shields multiplied by these (endings worst first). */
-    ARC_TIERS: [2, 5, 7, 9], ARC_MISS: 1, ARC_HULL: [1.14, 1, 1, .9, .76], ARC_SHIELD: [1, 1, .72, .67, .67],
+    ARC_TIERS: [2, 5, 7, 9], ARC_MISS: 1, ARC_HULL: [1.11, 1, .99, .89, .79], ARC_SHIELD: [1, 1, .72, .67, .67],
     BASE_CAP: 1000, RAID_DMG0: 30, RAID_DMG1: 80, RAID_DMG2: 150, RAID_SHARE: .5, RAID_FROM_BY_GALAXY: [5, 4, 3, 2, 2], RELIEF_MATS: 25, RELIEF_HULL: 10, LAST_BASE_MIN: 100,
     AWAY_COST: 20, AST_MINES: 2, AST_MAT_MIN: 25, AST_MAT_MAX: 45, AST_MINE_DMG: 6, SLOW_SHARE: .5, NEB_FIND: .6,
-    POWER: 6, POWER_COST: 5, SHIELD_PER: 6, CHARGE_MULT: 1.5, CHARGE_FLAGSHIP: 2, MOVE_COST: 2, BREAK_COST: 3, BANK_MAX: 3, SYS_FACTOR: 250, SYS_HULL_SHARE: .5, REPAIR_SYS: 10, REPAIR_SHIELD_DIV: 10, CRIT_AT: 8, DC_COST: 2, STAR_CHARGE: 20,
+    PLATE_HULL: 15, POWER: 6, POWER_COST: 5, SHIELD_PER: 6, CHARGE_MULT: 1.5, CHARGE_FLAGSHIP: 2, MOVE_COST: 2, BREAK_COST: 3, BANK_MAX: 3, SYS_FACTOR: 250, SYS_HULL_SHARE: .5, REPAIR_SYS: 10, REPAIR_SHIELD_DIV: 10, CRIT_AT: 8, DC_COST: 2, STAR_CHARGE: 20,
     FLEE_AT: .25, SURRENDER_AT: .3, SURRENDER_CHANCE: .5, SURR_CMD2: .05, SURR_CMD3: .1,
     /* Difficulty that rises by galaxy (values for galaxies 1 to 5; later galaxies use the last value). */
     BEAM_BY_GALAXY: [1.0, 1.1, 1.35, 2.3, 2.8], GATE_GROWTH_BY_GALAXY: [.1, .1, .1, .3, .3],
@@ -452,7 +452,9 @@ button.act small.nohelp { opacity: .6; }
     { id: "out", cur: "f", n: "Reactor output", cost: [2, 3, 4], what: function () { return "+1 power each battle turn"; } },
     { id: "shd", cur: "f", n: "Shields", cost: [1, 2, 3], what: function () { return "Each shield point absorbs 1 more damage"; } },
     { id: "las", cur: "f", n: "Pulse lasers", cost: [2, 3, 4], what: function () { return "+1 damage on every laser die"; } },
-    { id: "scn", cur: "f", n: "Scanner", cost: [1, 2, 3], whats: ["Scans cost half the energy", "Scans work from inside a nebula", "Scans reach 2 sectors out"] }
+    { id: "scn", cur: "f", n: "Scanner", cost: [1, 2, 3], whats: ["Scans cost half the energy", "Scans work from inside a nebula", "Scans reach 2 sectors out"] },
+    /* Added in build 28. Kept last so tuned upgrade costs saved on the phone (stored by list position) still match; the shipyard shows it after armour. */
+    { id: "plate", cur: "m", n: "Hull plating", cost: [65, 125, 250], what: function () { return "+" + K.PLATE_HULL + " maximum hull, and " + K.PLATE_HULL + " hull straight away"; } }
   ];
   /* Each galaxy past the first: Kethari hull +25%, loot +20%, and 30% more of them. Every second galaxy adds a die to their beams and a torpedo. */
   var COLS = "ABCDEFGH";
@@ -495,7 +497,7 @@ button.act small.nohelp { opacity: .6; }
     { n: "Kethari carrier", hull: 45, shield: 18, regen: 6, beam: [[2, 6], [4, 8], [2, 6]], torps: 2, loot: [40, 56], about: "Its fighters hit hardest at medium range. It is exposed while it recovers them. It holds station: it never closes in, backs away or runs." },
     { n: "Kethari outpost", hull: 60, shield: 24, regen: 8, beam: [[4, 6], [4, 6], [2, 6]], torps: 4, loot: [56, 80], about: "A fortified listening post that carries the gate codes. Its batteries pause to reload every third turn." },
     { n: "Kethari gatekeeper", hull: 75, shield: 24, regen: 8, beam: [[4, 8], [4, 8], [3, 8]], torps: 4, loot: [60, 90], about: "The warship that holds the jump gate. Dangerous at every range, and it never leaves its post." },
-    { n: "Dominion flagship", hull: 410, shield: 60, regen: 10, beam: [[6, 8], [6, 8], [5, 8]], torps: 6, loot: [150, 200], about: "The pride of the Kethari Dominion, holding the last gate. Destroying it wins the voyage." }
+    { n: "Dominion flagship", hull: 385, shield: 60, regen: 10, beam: [[7, 8], [7, 8], [6, 8]], torps: 6, loot: [150, 200], about: "The pride of the Kethari Dominion, holding the last gate. Destroying it wins the voyage." }
   ];
   var FOE_KIND = { raider: 0, gunship: 1, carrier: 2, outpost: 3 };
   var INTENT = {
@@ -793,7 +795,7 @@ button.act small.nohelp { opacity: .6; }
     g = "Upgrade costs";
     UPGRADES.forEach(function (u, i) { u.cost.forEach(function (c, l) { fld(g, u.n + ", level " + (l + 1) + (u.cur === "m" ? " (materials)" : " (discoveries)"), "UPGRADES." + i + ".cost." + l); }); });
     g = "Upgrade effects";
-    fld(g, "Reactor capacity: energy a level", "K.CAP_GAIN"); fld(g, "Torpedo bay: torpedoes a level", "K.BAY_GAIN");
+    fld(g, "Reactor capacity: energy a level", "K.CAP_GAIN"); fld(g, "Hull plating: hull a level", "K.PLATE_HULL"); fld(g, "Torpedo bay: torpedoes a level", "K.BAY_GAIN");
     fld(g, "Engines: warp energy saved a level", "K.ENG_SAVE"); fld(g, "Engines: extra range a level", "K.ENG_RANGE", "dec"); fld(g, "Solar collectors: gain a level, %", "K.SOL_GAIN", "pct");
   })();
   var DEFAULTS = JSON.stringify({ K: K, STARS: STARS, ODDS: ODDS, LASERS: LASERS, TORPS: TORPS, TORP: TORP, FOES: FOES, UPGRADES: UPGRADES.map(function (u) { return { cost: u.cost }; }) });
@@ -863,6 +865,8 @@ button.act small.nohelp { opacity: .6; }
   var dist = function (a, b) { return Math.hypot(a % N - b % N, Math.floor(a / N) - Math.floor(b / N)); };
   var here = function () { return state.grid[state.pos]; };
   var lvl = function (id) { return (state && state.up && state.up[id]) || 0; };
+  /* The Explorer's maximum hull: the base hull plus hull plating. */
+  var maxHull = function () { return K.HULL + K.PLATE_HULL * lvl("plate"); };
   var torpMax = function () { return K.TORP_MAX + K.BAY_GAIN * lvl("bay"); };
   var warpPer = function () { return Math.max(10, K.WARP_PER_SECTOR - K.ENG_SAVE * lvl("eng") - (hasRelic("harmoniser") ? 10 : 0)); };
   var warpRange = function () { return K.WARP_RANGE + K.ENG_RANGE * lvl("eng"); };
@@ -1134,7 +1138,7 @@ button.act small.nohelp { opacity: .6; }
     c.charges = 0; state.day++;
     var r = hasRelic("charm") ? 0 : Math.random();
     if (r < .7) {
-      var fix = Math.min(15 + rnd(11), K.HULL - state.hull), m = 10 + rnd(21) + (hasRelic("charm") ? 10 : 0), rl = Math.random() < K.RELIC_DERELICT ? giveRelic() : "";
+      var fix = Math.min(15 + rnd(11), maxHull() - state.hull), m = 10 + rnd(21) + (hasRelic("charm") ? 10 : 0), rl = Math.random() < K.RELIC_DERELICT ? giveRelic() : "";
       state.hull += fix; state.mats += m; sfx("gain");
       note(SALVAGE_GOOD[rnd(SALVAGE_GOOD.length)] + " Hull repaired by " + fix + ", and " + m + " materials recovered." + (rl ? " " + rl + "." : ""));
     } else if (r < .85) {
@@ -1150,9 +1154,9 @@ button.act small.nohelp { opacity: .6; }
   function repair() {
     /* At a starbase the same repair costs half as much. */
     var atBase = here().t === "base", cost = atBase ? baseRepairCost() : K.REPAIR_COST;
-    if (state.over || state.mats < cost || state.hull >= K.HULL) return;
+    if (state.over || state.mats < cost || state.hull >= maxHull()) return;
     state.mats -= cost; sfx("buy");
-    var fix = Math.min(K.REPAIR_GAIN, K.HULL - state.hull); state.hull += fix;
+    var fix = Math.min(K.REPAIR_GAIN, maxHull() - state.hull); state.hull += fix;
     note((atBase ? "Starbase repairs complete. Paid " : "Field repairs complete. Used ") + cost + " materials to restore " + fix + " hull.");
   }
 
@@ -1297,7 +1301,7 @@ button.act small.nohelp { opacity: .6; }
     else if (f.patrol !== undefined) dropPatrol(f.patrol);
     else if (f.raider !== undefined) {
       dropRaider(f.raider);
-      if (here().t === "base") { var hr = Math.min(K.RELIEF_HULL, K.HULL - state.hull); state.mats += K.RELIEF_MATS; state.hull += hr; extra += " The starbase's crew thanked the Explorer with " + K.RELIEF_MATS + " materials" + (hr ? " and repairs worth " + hr + " hull" : "") + "."; }
+      if (here().t === "base") { var hr = Math.min(K.RELIEF_HULL, maxHull() - state.hull); state.mats += K.RELIEF_MATS; state.hull += hr; extra += " The starbase's crew thanked the Explorer with " + K.RELIEF_MATS + " materials" + (hr ? " and repairs worth " + hr + " hull" : "") + "."; }
     }
     else state.grid[state.pos] = { t: "empty", known: true, visited: true };
     if (state.job && state.job.type === "hunt" && state.pos === state.job.target && !f.gate && !f.hunt && f.patrol === undefined && f.raider === undefined) state.job.n = 1;
@@ -1578,7 +1582,7 @@ button.act small.nohelp { opacity: .6; }
       '<div class="foeinfo' + (foeInfo ? " on" : "") + '"><span class="label">Its weapons</span><p>Beams <b>' + dice(foe.beam[0]) + "</b> close, <b>" + dice(foe.beam[1]) + "</b> medium, <b>" + dice(foe.beam[2]) + "</b> long. " +
       (foe.torps ? "Torpedoes <b>" + dice(TORP) + "</b>, " + f.torps + " left." : "No torpedoes.") +
       (f.w < 100 && f.w > 0 ? " With weapons at " + f.w + "% it rolls fewer beam dice." : "") + "</p><p>" + foe.about + "</p></div>" +
-      '<div class="meline"><b>Explorer</b><span><i>En</i> ' + state.energy + "/" + state.maxEnergy + "</span><span><i>Hull</i> " + state.hull + "/" + K.HULL + "</span><span><i>Torps</i> " + state.torps + "</span></div>" +
+      '<div class="meline"><b>Explorer</b><span><i>En</i> ' + state.energy + "/" + state.maxEnergy + "</span><span><i>Hull</i> " + state.hull + "/" + maxHull() + "</span><span><i>Torps</i> " + state.torps + "</span></div>" +
       (f.ter !== "open" ? "<p><b>" + TERRAIN[f.ter][0] + ".</b> " + (f.ter === "star" ? "The Explorer gains " + K.STAR_CHARGE + " energy every turn." : TERRAIN[f.ter][1]) + "</p>" : "") +
       (f.event && f.event.stage === 0 ? "" : (f.evNote ? '<div class="intent event' + (f.evNote.who ? " hasp" : "") + '">' + (f.evNote.who ? picImg(officer(f.evNote.who), "pt-s") : "") + '<div class="pbody"><span class="label">' + f.evNote.title + "</span>" + f.evNote.text +
         (f.evNote.fx.length ? '<ul class="fx">' + f.evNote.fx.map(function (z) { return '<li class="' + z[1] + '">' + z[0] + "</li>"; }).join("") + "</ul>" : "") + "</div></div>" : "")) +
@@ -2224,7 +2228,7 @@ button.act small.nohelp { opacity: .6; }
     var add = function (label, delta, unit) { if (delta) out.push([label + " " + (delta > 0 ? "+" : "−") + Math.abs(delta) + (unit || ""), delta > 0 ? "up" : "down"]); };
     if (fx.me) { s.maxEnergy += fx.me; s.energy += fx.me; add("Reactor capacity", fx.me); }
     if (fx.e) { was = s.energy; s.energy = Math.max(0, Math.min(s.maxEnergy, s.energy + fx.e)); add("Energy", s.energy - was); }
-    if (fx.h) { was = s.hull; s.hull = Math.min(K.HULL, s.hull + fx.h); add("Hull", s.hull - was); }
+    if (fx.h) { was = s.hull; s.hull = Math.min(maxHull(), s.hull + fx.h); add("Hull", s.hull - was); }
     if (fx.m) { was = s.mats; s.mats = Math.max(0, s.mats + fx.m); add("Materials", s.mats - was); }
     if (fx.t) { was = s.torps; s.torps = Math.max(0, Math.min(torpMax(), s.torps + fx.t)); add("Torpedoes", s.torps - was); }
     if (fx.f) { s.found += fx.f; s.foundTotal += fx.f; add("Discoveries", fx.f); }
@@ -2311,6 +2315,7 @@ button.act small.nohelp { opacity: .6; }
   /* ---------- Shipyard ---------- */
   function upgradeById(id) { for (var i = 0; i < UPGRADES.length; i++) if (UPGRADES[i].id === id) return UPGRADES[i]; return null; }
   function nextCost(u) { var l = lvl(u.id); return l < u.cost.length ? u.cost[l] : null; }
+  function yardOrder() { var l = UPGRADES.filter(function (u) { return u.id !== "plate"; }), at = l.indexOf(upgradeById("arm")) + 1; l.splice(at, 0, upgradeById("plate")); return l; }
   function openYard() { if (!state.over && here().t === "base") state.yard = true; }
   function buy(id) {
     var u = upgradeById(id), c = u ? nextCost(u) : null;
@@ -2320,6 +2325,7 @@ button.act small.nohelp { opacity: .6; }
     state.up[id] = lvl(id) + 1; sfx("buy");
     if (id === "cap") { state.maxEnergy += K.CAP_GAIN; state.energy += K.CAP_GAIN; }
     if (id === "bay") state.torps += K.BAY_GAIN;
+    if (id === "plate") state.hull += K.PLATE_HULL;
     note("Shipyard: " + u.n.toLowerCase() + " upgraded to level " + state.up[id] + ".");
   }
   /* Buy a weapon type if it is not owned yet, then fit it. Owned types can be swapped back for nothing. */
@@ -2338,7 +2344,7 @@ button.act small.nohelp { opacity: .6; }
     var h = '<span class="label">Starbase shipyard</span><h2>Upgrades and weapons</h2><p>Everything here lasts for this voyage. Hardware is paid for in materials, research in discoveries.</p>';
     [["m", "Hardware", state.mats + " materials"], ["f", "Research", state.found + " discover" + (state.found === 1 ? "y" : "ies")]].forEach(function (grp) {
       h += '<div class="yardhead"><span class="label">' + grp[1] + '</span><span class="label">You have ' + grp[2] + '</span></div><ul class="yard">';
-      UPGRADES.forEach(function (u) {
+      yardOrder().forEach(function (u) {
         if (u.cur !== grp[0]) return;
         var l = lvl(u.id), c = nextCost(u), have = u.cur === "m" ? state.mats : state.found, pips = "";
         for (var k = 0; k < u.cost.length; k++) pips += k < l ? "●" : "○";
@@ -2556,7 +2562,7 @@ button.act small.nohelp { opacity: .6; }
       "The header shows the galaxy, the day and the Dominion alert. The ship panel shows energy, hull, sectors charted, discoveries, materials, torpedoes and relics." ], true);
     h += sec("Energy, hull and materials", [
       "<b>Energy</b> pays for warp, scans and every point of power in battle. Collect it at stars: red stars give a little three times, yellow stars more twice, blue stars a lot once but the radiation costs hull. Docking at a starbase refills energy for free and takes a day.",
-      "<b>Hull</b> is the ship's life (" + K.HULL + " points). Field repairs cost " + K.REPAIR_COST + " materials for " + K.REPAIR_GAIN + " hull; at a starbase they cost half.",
+      "<b>Hull</b> is the ship's life (" + K.HULL + " points to start; each level of <b>hull plating</b> adds " + K.PLATE_HULL + "). Field repairs cost " + K.REPAIR_COST + " materials for " + K.REPAIR_GAIN + " hull; at a starbase they cost half.",
       "<b>Materials</b> come from away missions, mining asteroid fields, derelicts, encounters and beaten Kethari. They pay for repairs, torpedoes and hardware upgrades.",
       "<b>Discoveries</b> come from surveys, missions and encounters. They pay for research upgrades." ]);
     h += sec("Places", [
@@ -2634,7 +2640,7 @@ button.act small.nohelp { opacity: .6; }
     if (c.t === "base") {
       var rc = baseRepairCost();
       a.push(["dock", "Dock and recharge", s.energy >= s.maxEnergy ? "Energy is already full" : "Free. " + (baseCap(c) >= s.maxEnergy - s.energy ? "Full energy" : "+" + baseCap(c) + " energy, the most this starbase can give") + ", 1 day", s.energy >= s.maxEnergy]);
-      a.push(["repair", "Repair the hull", s.hull >= K.HULL ? "No damage to repair" : s.mats < rc ? "Needs " + rc + " materials" : (rc ? rc + " materials" : "Free") + ", +" + K.REPAIR_GAIN + " hull", s.hull >= K.HULL || s.mats < rc]);
+      a.push(["repair", "Repair the hull", s.hull >= maxHull() ? "No damage to repair" : s.mats < rc ? "Needs " + rc + " materials" : (rc ? rc + " materials" : "Free") + ", +" + K.REPAIR_GAIN + " hull", s.hull >= maxHull() || s.mats < rc]);
       a.push(["btorp", "Buy a torpedo", s.torps >= torpMax() ? "The bay is full" : s.mats < K.TORP_PRICE ? "Needs " + K.TORP_PRICE + " materials" : K.TORP_PRICE + " materials", s.torps >= torpMax() || s.mats < K.TORP_PRICE]);
       a.push(["yard", "Shipyard", "Upgrades and new weapons"]);
       var lostN = (s.crew || []).filter(function (o) { return o.st === "lost"; }).length;
@@ -2662,7 +2668,7 @@ button.act small.nohelp { opacity: .6; }
     var scanOff = blinded() || s.scanDown > s.day || s.energy < scanCost();
     a.push(["scan", "Long-range scan", blinded() ? "Sensors blinded by the nebula" : s.scanDown > s.day ? "Scanner offline until day " + s.scanDown
       : s.energy < scanCost() ? "Not enough energy" : "Chart nearby sectors, " + (scanCost() ? scanCost() + " energy" : "free"), scanOff]);
-    if (c.t !== "base" && s.hull < K.HULL && s.mats >= K.REPAIR_COST) a.push(["repair", "Field repair", K.REPAIR_COST + " materials, +" + K.REPAIR_GAIN + " hull"]);
+    if (c.t !== "base" && s.hull < maxHull() && s.mats >= K.REPAIR_COST) a.push(["repair", "Field repair", K.REPAIR_COST + " materials, +" + K.REPAIR_GAIN + " hull"]);
     return a.map(function (x, n) { return btn(x[0], x[1], x[2], { second: n > 0, disabled: !!x[3] }); }).join("");
   }
 
@@ -2682,9 +2688,9 @@ button.act small.nohelp { opacity: .6; }
     $("energyVal").textContent = s.energy + "/" + s.maxEnergy;
     $("energyBar").firstElementChild.style.width = (100 * s.energy / s.maxEnergy) + "%";
     $("energyBar").classList.toggle("low", s.energy < 200);
-    $("hullVal").textContent = s.hull + "/" + K.HULL;
-    $("hullBar").firstElementChild.style.width = Math.max(0, Math.min(100, 100 * s.hull / K.HULL)) + "%";
-    $("hullBar").classList.toggle("low", s.hull < K.HULL * .35);
+    $("hullVal").textContent = s.hull + "/" + maxHull();
+    $("hullBar").firstElementChild.style.width = Math.max(0, Math.min(100, 100 * s.hull / maxHull())) + "%";
+    $("hullBar").classList.toggle("low", s.hull < maxHull() * .35);
     var known = s.grid.filter(function (c) { return c.known; }).length;
     $("charted").textContent = known + " / " + N * N;
     $("found").textContent = s.found;
@@ -2844,7 +2850,7 @@ button.act small.nohelp { opacity: .6; }
     if (!s.seen) s.seen = [];                                            /* encounters already met */
     if (!s.up) s.up = {};                                                /* upgrades */
     if (!s.owned) { s.owned = { "L:pulse": 1, "T:proton": 1 }; s.laser = "pulse"; s.torp = "proton"; }  /* weapon fits */
-    if (s.hull > K.HULL) s.hull = K.HULL;
+    if (s.hull > maxHull()) s.hull = maxHull();
     if (s.enc === undefined) s.enc = null;
     if (s.crew) givePortraits();                                         /* crew portraits (build 21) */
     if (!s.crew) { s.crew = newCrew(); note("Five officers have joined the Explorer. Tap Crew to meet them."); }  /* officers (build 10) */
