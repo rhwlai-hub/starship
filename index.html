@@ -358,7 +358,7 @@ button.act small.nohelp { opacity: .6; }
   </section>
 
   <div class="foot">
-    <span>Build 24: story arcs</span>
+    <span>Build 25: fairer charged shots</span>
     <span class="footbtns"><button id="soundBtn" type="button">Sound: all</button><button id="helpBtn" type="button">How to play</button><button id="recBtn" type="button">Record</button><button id="tuneBtn" type="button">Tuning</button><button id="newGame" type="button">New game</button></span>
   </div>
 </div>
@@ -393,7 +393,7 @@ button.act small.nohelp { opacity: .6; }
     ARC_TIERS: [2, 5, 7, 9], ARC_MISS: 1, ARC_HULL: [1.14, 1, 1, .9, .76], ARC_SHIELD: [1, 1, .72, .67, .67],
     BASE_CAP: 1000, RAID_DMG0: 30, RAID_DMG1: 80, RAID_DMG2: 150, RAID_SHARE: .5, RAID_FROM_BY_GALAXY: [5, 4, 3, 2, 2], RELIEF_MATS: 25, RELIEF_HULL: 10, LAST_BASE_MIN: 100,
     AWAY_COST: 20, AST_MINES: 2, AST_MAT_MIN: 25, AST_MAT_MAX: 45, AST_MINE_DMG: 6, SLOW_SHARE: .5, NEB_FIND: .6,
-    POWER: 6, POWER_COST: 5, SHIELD_PER: 6, MOVE_COST: 2, BREAK_COST: 3, BANK_MAX: 3, SYS_FACTOR: 250, SYS_HULL_SHARE: .5, REPAIR_SYS: 10, REPAIR_SHIELD_DIV: 10, CRIT_AT: 8, DC_COST: 2, STAR_CHARGE: 20,
+    POWER: 6, POWER_COST: 5, SHIELD_PER: 6, CHARGE_MULT: 1.5, CHARGE_FLAGSHIP: 2, MOVE_COST: 2, BREAK_COST: 3, BANK_MAX: 3, SYS_FACTOR: 250, SYS_HULL_SHARE: .5, REPAIR_SYS: 10, REPAIR_SHIELD_DIV: 10, CRIT_AT: 8, DC_COST: 2, STAR_CHARGE: 20,
     FLEE_AT: .25, SURRENDER_AT: .3, SURRENDER_CHANCE: .5,
     /* Difficulty that rises by galaxy (values for galaxies 1 to 5; later galaxies use the last value). */
     BEAM_BY_GALAXY: [1.0, 1.1, 1.35, 2.3, 2.8], GATE_GROWTH_BY_GALAXY: [.1, .1, .1, .3, .3],
@@ -460,8 +460,8 @@ button.act small.nohelp { opacity: .6; }
   var INTENT = {
     fire: "Firing its beam weapons.",
     torp: "Launching a torpedo. Its damage is the same at any range.",
-    heavy: "Firing its charged main guns: double the usual dice.",
-    charge: "Charging its main guns. It will not fire this turn, but its next shot will be heavy.",
+    heavy: "Firing its charged main guns: more dice than usual, at whatever range you end this turn. Changing range now can take the sting out of it.",
+    charge: "Charging its main guns. It will not fire this turn. Next turn it fires a heavy shot at whatever range you end that turn.",
     closer: "Firing half its usual dice, then closing in. If you back away it gives chase at full fire.",
     away: "Firing half its usual dice, then pulling back.",
     recover: "Recovering its fighters. It cannot attack this turn and takes extra damage.",
@@ -688,6 +688,7 @@ button.act small.nohelp { opacity: .6; }
     fld(g, "Black hole: hull damage", "K.BLACKHOLE_DMG");
     fld(g, "Ion storm: least energy drained", "K.ION_MIN"); fld(g, "Ion storm: most energy drained", "K.ION_MAX"); fld(g, "Ion storm: days without scanner", "K.ION_DAYS");
     g = "Battle: the Explorer";
+    fld(g, "Charged shot: dice multiplied by (Kethari ships)", "K.CHARGE_MULT", "dec"); fld(g, "Charged shot: dice multiplied by (flagship)", "K.CHARGE_FLAGSHIP", "dec");
     fld(g, "Reactor power a turn", "K.POWER"); fld(g, "Energy for each power point", "K.POWER_COST"); fld(g, "Damage absorbed by each shield point", "K.SHIELD_PER");
     fld(g, "Power to change range", "K.MOVE_COST"); fld(g, "Power to break away", "K.BREAK_COST"); fld(g, "Most power that can be banked", "K.BANK_MAX");
     fld(g, "Hull lost in one hit that knocks out a system", "K.CRIT_AT", "die"); fld(g, "Power to repair one of your systems", "K.DC_COST"); fld(g, "Energy a turn when fighting close to a star", "K.STAR_CHARGE");
@@ -1210,7 +1211,7 @@ button.act small.nohelp { opacity: .6; }
     var it = f.intent, b = foe.beam[fr], n;
     if (f.silenced || f.held) return null;
     if (it === "torp") return TORP[0] > 0 ? [TORP[0], TORP[1]] : null;
-    if (it === "fire") n = b[0]; else if (it === "heavy") n = b[0] * 2; else if (it === "closer" && f.a && f.a.move === 1) n = b[0]; /* it gives chase at full fire when the Explorer backs away */
+    if (it === "fire") n = b[0]; else if (it === "heavy") n = Math.ceil(b[0] * (f.kind === 5 ? K.CHARGE_FLAGSHIP : K.CHARGE_MULT)); else if (it === "closer" && f.a && f.a.move === 1) n = b[0]; /* it gives chase at full fire when the Explorer backs away */
     else if (it === "closer" || it === "away") n = Math.ceil(b[0] / 2); else return null;
     n = terrainDice(Math.ceil(n * f.w / 100), f, fr);
     return n > 0 ? [n, b[1]] : null;
@@ -1222,7 +1223,8 @@ button.act small.nohelp { opacity: .6; }
     var a = f.a, foe = foeNow(f.kind, f.elite), fr = f.range, r = fr, it = f.intent;
     if (a.move === -1) r = Math.max(0, r - 1); else if (a.move === 1) r = Math.min(2, r + 1);
     if (it === "closer") r = Math.max(0, r - 1); else if (it === "away") r = Math.min(2, r + 1);
-    var d = foeDice(f, foe, fr), soft = it === "recover" ? 1.5 : 1, blast = a.torp && fr === 0 && !hasRelic("baffle"), absorb = f.elite === "ace" && f.turn === 1 ? 0 : Math.floor(a.sh * shieldPer() * (f.evShHalf ? .5 : 1)), arm = lvl("arm"), las = lvl("las");
+    /* A charged (heavy) shot fires at the range the Explorer ends the turn at, so changing range can dodge the worst of it. */
+    var d = foeDice(f, foe, it === "heavy" ? r : fr), soft = it === "recover" ? 1.5 : 1, blast = a.torp && fr === 0 && !hasRelic("baffle"), absorb = f.elite === "ace" && f.turn === 1 ? 0 : Math.floor(a.sh * shieldPer() * (f.evShHalf ? .5 : 1)), arm = lvl("arm"), las = lvl("las");
     var ld = terrainDice(a.la + (a.la ? f.evLas || 0 : 0), f, fr), lt = laserType(), tt = torpType(), td = tt.d[fr], thru = lt.pierce || 0;
     var lLo = Math.round(ld * (1 + las) * soft), lHi = Math.round(ld * (lt.die[fr] + las) * soft);
     var prim = hasRelic("primer") ? 4 : 0, tLo = a.torp ? Math.round((td[0] + prim) * soft) : 0, tHi = a.torp ? Math.round((td[0] * td[1] + prim) * soft) : 0;
@@ -2409,7 +2411,7 @@ button.act small.nohelp { opacity: .6; }
       "You have <b>" + power() + " power</b> a turn, each point costing " + K.POWER_COST + " energy. Split it between moving, shields, lasers, a torpedo and damage control. Unused power banks for next turn, up to " + K.BANK_MAX + ".",
       "<b>Shields</b>: each point absorbs " + shieldPer() + " damage this turn. <b>Lasers</b>: one die a point (pulse lasers roll 1d" + lt[0] + " close, 1d" + lt[1] + " medium, 1d" + lt[2] + " long); they hit its shields first. <b>Torpedo</b>: 1 power, big damage, but wasted unless its shields are down when it arrives.",
       "Aim lasers at its <b>hull</b>, or at its <b>weapons</b> or <b>engines</b> to cripple it (less hull damage). Engines below 50% cannot move.",
-      "Both sides fire at the range the turn starts at, then move. Changing range costs " + K.MOVE_COST + " power. The forecast shows the lowest and highest result before you commit.",
+      "Both sides fire at the range the turn starts at, then move. The exception is a <b>charged shot</b>: it fires at the range you end the turn at, so you can move out of its best range. Changing range costs " + K.MOVE_COST + " power. The forecast shows the lowest and highest result before you commit.",
       "A hit of " + K.CRIT_AT + " or more can knock out your lasers, torpedo tube or engines. Damage control (" + K.DC_COST + " power) brings one back next turn.",
       "The battlefield matters: nebulae halve dice at long range, asteroid fields take a die off both sides, and a star recharges you." ]);
     h += sec("Battle: ending it", [
