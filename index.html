@@ -419,7 +419,7 @@ button.act small.nohelp { opacity: .6; }
   </div>
 
   <div class="foot">
-    <span>Build 29: larger screens</span>
+    <span>Build 30: more star energy, fewer encounters, flagship retuned</span>
     <span class="footbtns"><button id="soundBtn" type="button">Sound: all</button><button id="helpBtn" type="button">How to play</button><button id="recBtn" type="button">Record</button><button id="tuneBtn" type="button">Tuning</button><button id="newGame" type="button">New game</button></span>
   </div>
 </div>
@@ -445,13 +445,13 @@ button.act small.nohelp { opacity: .6; }
      The tuning screen edits these, and its changes are stored separately as overrides on top of the values written here. */
   var K = {
     START_ENERGY: 1000, HULL: 67, TORP_MAX: 6, TORP_PRICE: 5, WARP_PER_SECTOR: 60, WARP_RANGE: 3.2, SCAN_COST: 40, WORMHOLE_COST: 30, GATE_COST: 100, REPAIR_COST: 20, REPAIR_GAIN: 10,
-    MIN_FULL: .2, MAX_FULL: .4, ENCOUNTER_CHANCE: .25, NOTHING_CHANCE: .1, GALAXIES: 5, ALERT_DAYS: 12, PAR_DAYS: 250,
+    MIN_FULL: .2, MAX_FULL: .4, ENCOUNTER_CHANCE: .2, NOTHING_CHANCE: .1, GALAXIES: 5, ALERT_DAYS: 12, PAR_DAYS: 250,
     ASTEROID_MIN: 8, ASTEROID_MAX: 15, BLACKHOLE_DMG: 5, ION_MIN: 60, ION_MAX: 120, ION_DAYS: 3,
     BOARD_BASE: .4, BOARD_OUTPOST: 0, BOARD_PER_LVL: .15, BOARD_WEAP: .15, BOARD_HULL: .2, BOARD_LOOT: 2, EVENT_CHANCE: .33, EV_BASE: .55, EV_PER_LVL: .15, EV_NONE: .3,
     ELITE_FROM: 3, ELITE_CHANCE: .25, ELITE_LOOT: 1.5, RELIC_MISSION: .2, RELIC_DERELICT: .15, RELIC_BOARD: .35, RELIC_ELITE: .5, JOB_RELIC: .2, JOB_MAT_MIN: 40, JOB_MAT_MAX: 60, PATROLS: 2, STRONGHOLD: .67, BELT_GAIN: .5,
     /* Story arcs: points needed for endings 2 to 5 (fewer points: ending 1), points lost for a missed chapter, and each ending's
        effect on the flagship: hull and shields multiplied by these (endings worst first). */
-    ARC_TIERS: [2, 5, 7, 9], ARC_MISS: 1, ARC_HULL: [1.11, 1, .99, .89, .79], ARC_SHIELD: [1, 1, .72, .67, .67],
+    ARC_TIERS: [2, 5, 7, 9], ARC_MISS: 1, ARC_HULL: [1.08, .94, .88, .78, .66], ARC_SHIELD: [1, .94, .66, .59, .55],
     BASE_CAP: 1000, RAID_DMG0: 30, RAID_DMG1: 80, RAID_DMG2: 150, RAID_SHARE: .5, RAID_FROM_BY_GALAXY: [5, 4, 3, 2, 2], RELIEF_MATS: 25, RELIEF_HULL: 10, LAST_BASE_MIN: 100,
     AWAY_COST: 20, AST_MINES: 2, AST_MAT_MIN: 25, AST_MAT_MAX: 45, AST_MINE_DMG: 6, SLOW_SHARE: .5, NEB_FIND: .6,
     PLATE_HULL: 15, POWER: 6, POWER_COST: 5, SHIELD_PER: 6, CHARGE_MULT: 1.5, CHARGE_FLAGSHIP: 2, MOVE_COST: 2, BREAK_COST: 3, BANK_MAX: 3, SYS_FACTOR: 250, SYS_HULL_SHARE: .5, REPAIR_SYS: 10, REPAIR_SHIELD_DIV: 10, CRIT_AT: 8, DC_COST: 2, STAR_CHARGE: 20,
@@ -479,9 +479,9 @@ button.act small.nohelp { opacity: .6; }
   /* Each galaxy past the first: Kethari hull +25%, loot +20%, and 30% more of them. Every second galaxy adds a die to their beams and a torpedo. */
   var COLS = "ABCDEFGH";
   var STARS = [
-    { n: "Yellow", c: "#ffd76a", gain: 180, charges: 2, dmg: 0 },
-    { n: "Red", c: "#ff8a6b", gain: 120, charges: 3, dmg: 0 },
-    { n: "Blue", c: "#8fc4ff", gain: 300, charges: 1, dmg: 5 }
+    { n: "Yellow", c: "#ffd76a", gain: 360, charges: 2, dmg: 0 },
+    { n: "Red", c: "#ff8a6b", gain: 240, charges: 3, dmg: 0 },
+    { n: "Blue", c: "#8fc4ff", gain: 600, charges: 1, dmg: 5 }
   ];
   var PLANETS = [
     { n: "Habitable planet", c: "#63d2b4" },
